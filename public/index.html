@@ -157,6 +157,11 @@
     body.compact .avatar { width:28px; height:28px; }
     body.no-scanlines:after { display:none; }
 
+    .message-actions { display:flex; gap:5px; margin-top:6px; opacity:0; transition:.15s; }
+    .message:hover .message-actions { opacity:1; }
+    .message-delete { padding:3px 7px; font-size:9px; border:1px solid #7a2424; color:var(--red); background:#130404; }
+    .recycled-message { border:1px solid #674318; background:#160f03; padding:9px; margin-bottom:8px; }
+    .history-filter { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
     .history-line { border-left:2px solid var(--line); padding:7px 9px; margin:0 0 8px 4px; color:var(--green-soft); }
     .history-line small { display:block; color:var(--dim); margin-top:3px; }
     .deleted-file { opacity:.72; border-color:#663b18; }
@@ -181,11 +186,30 @@
     .calendar-event.high { border-color:var(--red); color:#ff9a9a; }
     .calendar-event.medium { border-color:var(--amber); color:#ffe68c; }
     .calendar-event.low { border-color:var(--green); }
+    .calendar-export-note { border:1px dashed var(--line); color:var(--dim); padding:8px; margin-top:10px; font-size:10px; line-height:1.5; }
     .cloud-state { font-size:10px; color:var(--dim); }
     .cloud-state.online { color:var(--green); }
     .cloud-state.offline { color:var(--red); }
+
+    .bin-actions { display:flex; gap:6px; flex-wrap:wrap; margin:7px 0 12px; }
+    @media(max-width:700px){
+      html,body{height:100%;overflow:hidden;font-size:13px}
+      .app{height:100dvh;min-height:0;grid-template-rows:46px 1fr 24px}
+      .main{min-height:0;display:block}.workspace{height:100%;min-height:0;grid-template-rows:52px 1fr auto}
+      .sidebar{display:none}.rightbar{display:none}.topbar{padding:0 7px}.brand{font-size:11px;letter-spacing:0;gap:5px}.brand .prompt{padding:2px 4px}.brand span:last-child{display:none}
+      .top-actions{gap:5px}.search-box{display:none}.user-label{display:none}.cloud-state{font-size:8px}.burger{width:34px;height:31px}
+      .chat-head{padding:0 8px}.chat-title{font-size:15px}.chat-sub{font-size:9px;max-width:210px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chat-head .icon-btn{padding:6px;font-size:9px}
+      .messages{padding:7px}.message{grid-template-columns:29px 1fr;gap:7px;padding:6px 3px}.avatar{width:27px;height:27px;font-size:10px}.text,.rich-content{font-size:12px}.message-actions{opacity:1}
+      .composer{padding:6px}.formatbar{overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px}.formatbar button{white-space:nowrap;padding:5px 7px}.compose-row{grid-template-columns:auto minmax(0,1fr) auto;gap:4px}.rich-editor{min-height:42px;max-height:92px;padding:8px;font-size:12px}.compose-row .cmd-btn{padding:8px 7px}.hint{font-size:8px}
+      .footer{font-size:8px;padding:4px 6px}.footer span:first-child{display:none}
+      .modal-wrap{padding:4px;align-items:stretch}.modal{width:100%!important;max-height:none!important;height:100%;border-left:0;border-right:0}.modal-body{padding:9px}.modal-head{padding:9px}.form-grid,.editor-grid{grid-template-columns:1fr}.modal-actions{flex-wrap:wrap}.modal-actions .cmd-btn{flex:1;min-width:105px}
+      .settings-drawer{width:100vw}.settings-body{padding:7px}.settings-section-body{padding:8px}.channel-admin{grid-template-columns:1fr auto auto}.channel-admin .icon-btn{padding:5px;font-size:9px}
+      .calendar-shell{padding:6px;overflow:auto}.calendar-toolbar{position:sticky;top:0;z-index:2;background:#030d04;padding:4px}.calendar-toolbar>div{display:flex;gap:4px;flex-wrap:wrap}.calendar-toolbar .cmd-btn{padding:6px;font-size:9px}.calendar-title{width:100%;order:-1;text-align:center;font-size:15px}.calendar-grid{grid-template-columns:repeat(7,minmax(92px,1fr));min-width:644px}.calendar-day{min-height:92px;padding:3px}.calendar-event{font-size:8px;padding:3px}
+      .table-wrap{max-width:calc(100vw - 55px)}table{min-width:520px}.tab-content{padding:7px}.card{padding:8px}
+    }
+    @media(min-width:701px) and (max-width:1050px){.main{grid-template-columns:210px 1fr}.rightbar{display:none}}
     @media(max-width: 1050px){ .main{grid-template-columns:210px 1fr}.rightbar{display:none} }
-    @media(max-width: 700px){ body{overflow:auto}.app{height:auto;min-height:100vh}.main{grid-template-columns:1fr}.sidebar{display:none}.workspace{min-height:calc(100vh - 75px)}.search-box{display:none}.top-actions .user-label{display:none} }
+    
   </style>
 </head>
 <body>
@@ -276,7 +300,7 @@
       <div class="calendar-toolbar">
         <div><button class="cmd-btn" onclick="changeMonth(-1)">&lt; PREV</button> <button class="cmd-btn" onclick="goToday()">TODAY</button> <button class="cmd-btn" onclick="changeMonth(1)">NEXT &gt;</button></div>
         <div id="calendarTitle" class="calendar-title"></div>
-        <button class="cmd-btn" onclick="openEventEditor()">+ NEW EVENT</button>
+        <div><button class="cmd-btn" onclick="exportAllCalendarICS()">EXPORT ALL (.ICS)</button> <button class="cmd-btn" onclick="openEventEditor()">+ NEW EVENT</button></div>
       </div>
       <div id="calendarGrid" class="calendar-grid"></div>
     </div>
@@ -409,6 +433,7 @@ let activeTab = 'tasks';
 let selectedAttachments = [];
 let preferences = JSON.parse(localStorage.getItem('autofab_preferences') || 'null') || {name:'ADMIN-HR', compact:false, scan:true, sound:true};
 let fileHistory = JSON.parse(localStorage.getItem('autofab_file_history') || '[]');
+let messageHistory = JSON.parse(localStorage.getItem('autofab_message_history') || '[]');
 let customFeature = JSON.parse(localStorage.getItem('autofab_custom_feature') || 'null') || {name:'',html:'',css:'',js:''};
 let calendarEvents = JSON.parse(localStorage.getItem('autofab_calendar_events') || '[]');
 let calendarDate = new Date();
@@ -424,6 +449,7 @@ function save(){
   localStorage.setItem('autofab_channels',JSON.stringify(channels));
   localStorage.setItem('autofab_preferences',JSON.stringify(preferences));
   localStorage.setItem('autofab_file_history',JSON.stringify(fileHistory));
+  localStorage.setItem('autofab_message_history',JSON.stringify(messageHistory));
   localStorage.setItem('autofab_custom_feature',JSON.stringify(customFeature));
   localStorage.setItem('autofab_calendar_events',JSON.stringify(calendarEvents));
   if(!isApplyingServerState){ clearTimeout(syncTimer); syncTimer=setTimeout(pushState,700); }
@@ -433,19 +459,29 @@ function renderChannels(){
   channelList.innerHTML = channels.map(c=>`<button class="channel ${c.id===activeChannel?'active':''}" onclick="setChannel('${c.id}')"><span>&gt; # ${c.name}</span><span class="badge">${c.unread}</span></button>`).join('');
 }
 function setChannel(id){ activeChannel=id; const c=channels.find(x=>x.id===id); c.unread=0; channelTitle.textContent='# '+c.name; channelDesc.textContent=c.desc; renderChannels(); renderMessages(); }
+function ensureMessageIds(){
+  Object.keys(messages).forEach(channel=>messages[channel].forEach(m=>{if(!m.id)m.id='MSG-'+Date.now()+'-'+Math.random().toString(36).slice(2);if(m.deleted===undefined)m.deleted=false;}));
+}
 function renderMessages(filter=''){
-  const list=(messages[activeChannel]||[]).filter(m=>(m.text||'').toLowerCase().includes(filter.toLowerCase()));
+  ensureMessageIds();
+  const list=(messages[activeChannel]||[]).filter(m=>!m.deleted&&(m.text||'').toLowerCase().includes(filter.toLowerCase()));
   messagesEl=document.getElementById('messages');
   messagesEl.innerHTML=list.map(m=>{
-    if(m.type==='system') return `<div class="system-msg">${esc(m.text)}</div>`;
+    if(m.type==='system') return `<div class="system-msg">${esc(m.text)}<div class="message-actions"><button class="message-delete" onclick="deleteMessage('${m.id}')">DELETE</button></div></div>`;
     let body=m.html?`<div class="rich-content">${m.html}</div>`:`<div class="text">${esc(m.text)}</div>`;
     if(m.table){ body += `<div class="table-wrap"><table>${m.table.map((r,i)=>`<tr>${r.map(v=>i===0?`<th>${esc(v)}</th>`:`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</table></div>`; }
     if(m.files) body += m.files.map(f=>`<div class="attachment">[FILE] ${esc(f.name)} (${esc(f.size)})</div><div class="file-actions"><button class="file-link" onclick="openAttachment('${f.id}',false)">OPEN</button><button class="file-link" onclick="openAttachment('${f.id}',true)">DOWNLOAD</button></div>`).join('');
+    body+=`<div class="message-actions"><button class="message-delete" onclick="deleteMessage('${m.id}')">DELETE MESSAGE</button></div>`;
     return `<div class="message"><div class="avatar">${esc((m.author||'?').slice(0,2))}</div><div><div class="meta"><span class="author">${esc(m.author)}</span><span class="time">${esc(m.time)}</span></div>${body}</div></div>`;
-  }).join('') || '<div class="empty">NO MATCHING MESSAGES</div>';
-  document.getElementById('messageCount').textContent=String(Object.values(messages).flat().length).padStart(2,'0');
+  }).join('') || '<div class="empty">NO ACTIVE MESSAGES</div>';
+  document.getElementById('messageCount').textContent=String(Object.values(messages).flat().filter(m=>!m.deleted).length).padStart(2,'0');
   messagesEl.scrollTop=messagesEl.scrollHeight;
 }
+function messageSummary(m){return String(m.text||m.html?.replace(/<[^>]*>/g,' ')||'[ATTACHMENT]').replace(/\s+/g,' ').trim().slice(0,120);}
+function addMessageHistory(action,m,channel){messageHistory.unshift({action,messageId:m.id,summary:messageSummary(m),channel,author:m.author||'SYSTEM',at:historyTime(),by:preferences.name});if(messageHistory.length>1000)messageHistory.length=1000;}
+function deleteMessage(id){const list=messages[activeChannel]||[];const m=list.find(x=>x.id===id);if(!m||!confirm('Move this message to Message Recycle Bin?'))return;m.deleted=true;m.deletedAt=new Date().toISOString();m.deletedBy=preferences.name;addMessageHistory('MESSAGE DELETED',m,activeChannel);save();renderMessages();renderTab();}
+function restoreMessage(channel,id){const m=(messages[channel]||[]).find(x=>x.id===id);if(!m)return;m.deleted=false;m.deletedAt=null;addMessageHistory('MESSAGE RESTORED',m,channel);save();renderMessages();renderTab();}
+function permanentDeleteMessage(channel,id){const list=messages[channel]||[];const m=list.find(x=>x.id===id);if(!m||!confirm('Permanently delete this message? This cannot be undone.'))return;addMessageHistory('MESSAGE PERMANENTLY DELETED',m,channel);messages[channel]=list.filter(x=>x.id!==id);save();renderMessages();renderTab();}
 function now(){ return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false}); }
 function sanitizeRichHTML(html){
   const box=document.createElement('div'); box.innerHTML=html;
@@ -478,7 +514,7 @@ function sendMessage(){
   const text=input.innerText.trim();
   if(text==='/task'){openModal('task');return} if(text==='/ticket'){openModal('ticket');return} if(text==='/table'){openModal('table');return}
   if(!text && !html.replace(/<[^>]+>/g,'').trim() && !selectedAttachments.length)return;
-  const m={author:preferences.name,time:now(),text:text||'Shared attachment(s).',html:html};
+  const m={id:'MSG-'+Date.now()+'-'+Math.random().toString(36).slice(2),author:preferences.name,time:now(),text:text||'Shared attachment(s).',html:html,deleted:false};
   if(selectedAttachments.length){
     m.files=selectedAttachments.map(f=>({id:f.id,name:f.name,size:f.size,type:f.type}));
     selectedAttachments.forEach(f=>{files.unshift({id:f.id,name:f.name,size:f.size,type:f.type,channel:activeChannel,time:now(),deleted:false,deletedAt:null});addFileHistory('UPLOADED',f.name);});
@@ -511,12 +547,40 @@ function renderTab(){
     const live=files.filter(x=>!x.deleted), trash=files.filter(x=>x.deleted);
     box.innerHTML='<div class="section-head"><span>ACTIVE FILES</span><span>'+live.length+'</span></div>'+live.map(fileCard).join('')+
       (live.length?'':'<div class="empty">NO ACTIVE FILES</div>')+
-      '<div class="section-head" style="margin-top:18px"><span>RECYCLE BIN</span><span>'+trash.length+'</span></div>'+trash.map(recycleCard).join('')+
+      '<div class="section-head" style="margin-top:18px"><span>RECYCLE BIN</span><span>'+trash.length+'</span></div><div class="bin-actions"><button class="cmd-btn danger-btn" onclick="clearFileBin()">CLEAR FILE BIN</button><button class="cmd-btn danger-btn" onclick="clearAllBins()">CLEAR ALL BINS</button></div>'+trash.map(recycleCard).join('')+
       (trash.length?'':'<div class="empty">RECYCLE BIN EMPTY</div>');
   }
-  if(activeTab==='history') box.innerHTML=fileHistory.map(h=>`<div class="history-line"><b>${esc(h.action)}</b> ${esc(h.name)}<small>${esc(h.at)} | ${esc(h.by)}</small></div>`).join('')||'<div class="empty">NO FILE HISTORY</div>';
+  if(activeTab==='history'){
+    ensureMessageIds();
+    const deleted=Object.entries(messages).flatMap(([channel,list])=>list.filter(m=>m.deleted).map(m=>({channel,m})));
+    const audit=[...fileHistory.map(h=>({...h,kind:'FILE',label:h.name})),...messageHistory.map(h=>({...h,kind:'MESSAGE',label:h.summary}))].sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+    box.innerHTML=`<div class="section-head"><span>MESSAGE RECYCLE BIN</span><span>${deleted.length}</span></div><div class="bin-actions"><button class="cmd-btn danger-btn" onclick="clearMessageBin()">CLEAR MESSAGE BIN</button><button class="cmd-btn danger-btn" onclick="clearAllBins()">CLEAR ALL BINS</button></div>`+
+      (deleted.map(x=>`<div class="recycled-message"><div class="card-id">#${esc(x.channel.toUpperCase())} | ${esc(x.m.author||'SYSTEM')}</div><div class="card-title">${esc(messageSummary(x.m))}</div><div class="card-meta">DELETED BY: ${esc(x.m.deletedBy||'UNKNOWN')}</div><div class="file-actions"><button class="file-link" onclick="restoreMessage('${x.channel}','${x.m.id}')">RESTORE</button><button class="file-link danger-btn" onclick="permanentDeleteMessage('${x.channel}','${x.m.id}')">DELETE FOREVER</button></div></div>`).join('')||'<div class="empty">MESSAGE RECYCLE BIN EMPTY</div>')+
+      `<div class="section-head" style="margin-top:18px"><span>COMPLETE AUDIT HISTORY</span><span>${audit.length}</span></div>`+
+      (audit.map(h=>`<div class="history-line"><b>[${esc(h.kind)}] ${esc(h.action)}</b> ${esc(h.label||'')}<small>${esc(h.at)} | BY: ${esc(h.by||'')} ${h.channel?'| #'+esc(h.channel.toUpperCase()):''}</small></div>`).join('')||'<div class="empty">NO AUDIT HISTORY</div>');
+  }
   taskCount.textContent=String(tasks.length).padStart(2,'0'); ticketCount.textContent=String(tickets.length).padStart(2,'0');
 }
+
+async function clearFileBin(skipConfirm=false){
+  const trash=files.filter(x=>x.deleted);if(!trash.length){if(!skipConfirm)alert('File Recycle Bin is already empty.');return true;}
+  if(!skipConfirm&&!confirm(`Permanently delete all ${trash.length} recycled file(s)? This cannot be undone.`))return false;
+  try{const db=await openFileDB();await Promise.all(trash.map(f=>new Promise(resolve=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').delete(f.id);tx.oncomplete=resolve;tx.onerror=resolve;})));}catch(e){}
+  trash.forEach(f=>addFileHistory('PERMANENTLY DELETED BY CLEAR BIN:',f.name));files=files.filter(x=>!x.deleted);save();renderTab();return true;
+}
+function clearMessageBin(skipConfirm=false){
+  const deleted=Object.entries(messages).flatMap(([channel,list])=>list.filter(m=>m.deleted).map(m=>({channel,m})));
+  if(!deleted.length){if(!skipConfirm)alert('Message Recycle Bin is already empty.');return true;}
+  if(!skipConfirm&&!confirm(`Permanently delete all ${deleted.length} recycled message(s)? This cannot be undone.`))return false;
+  deleted.forEach(x=>addMessageHistory('MESSAGE PERMANENTLY DELETED BY CLEAR BIN',x.m,x.channel));Object.keys(messages).forEach(channel=>messages[channel]=messages[channel].filter(m=>!m.deleted));save();renderMessages();renderTab();return true;
+}
+async function clearAllBins(){
+  const fc=files.filter(x=>x.deleted).length,mc=Object.values(messages).flat().filter(m=>m.deleted).length;
+  if(!fc&&!mc){alert('All recycle bins are already empty.');return;}
+  if(!confirm(`Permanently clear ${fc} file(s) and ${mc} message(s) from all recycle bins?`))return;
+  await clearFileBin(true);clearMessageBin(true);renderTab();
+}
+
 function fileCard(x){ return `<div class="card"><span class="card-id">[FILE]</span><div class="card-title">${esc(x.name)}</div><div class="card-meta">${esc(x.size)} | #${esc((x.channel||'').toUpperCase())} | ${esc(x.time)}</div><div class="file-actions"><button class="file-link" onclick="openAttachment('${x.id}',false)">OPEN</button><button class="file-link" onclick="openAttachment('${x.id}',true)">DOWNLOAD</button><button class="file-link danger-btn" onclick="moveFileToRecycle('${x.id}')">DELETE</button></div></div>`; }
 function recycleCard(x){ return `<div class="card deleted-file"><span class="card-id">[RECYCLED]</span><div class="card-title">${esc(x.name)}</div><div class="card-meta">DELETED: ${esc(x.deletedAt||'')}</div><div class="file-actions"><button class="file-link" onclick="restoreFile('${x.id}')">RESTORE</button><button class="file-link danger-btn" onclick="permanentDeleteFile('${x.id}')">DELETE FOREVER</button></div></div>`; }
 function historyTime(){return new Date().toLocaleString('en-IN',{hour12:false});}
@@ -582,13 +646,13 @@ function applyPreferences(){
   const label=document.querySelector('.user-label'); if(label)label.textContent=preferences.name+' [ONLINE]';
 }
 function exportData(){
-  const data={version:'1.1',exportedAt:new Date().toISOString(),channels,messages,tasks,tickets,files,preferences,fileHistory,customFeature,calendarEvents};
+  const data={version:'1.7',exportedAt:new Date().toISOString(),channels,messages,tasks,tickets,files,preferences,fileHistory,messageHistory,customFeature,calendarEvents};
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='autofab_terminal_backup.json'; a.click(); URL.revokeObjectURL(a.href);
 }
 function importBackup(input){
-  const file=input.files[0]; if(!file)return; const reader=new FileReader(); reader.onload=()=>{try{const d=JSON.parse(reader.result); if(!Array.isArray(d.channels)||!d.messages)throw Error(); channels=d.channels;messages=d.messages;tasks=d.tasks||[];tickets=d.tickets||[];files=d.files||[];preferences=d.preferences||preferences;fileHistory=d.fileHistory||[];customFeature=d.customFeature||customFeature;calendarEvents=d.calendarEvents||[];activeChannel=channels[0].id;save();location.reload();}catch(e){alert('Invalid Autofab Terminal backup file.')}};reader.readAsText(file);input.value='';
+  const file=input.files[0]; if(!file)return; const reader=new FileReader(); reader.onload=()=>{try{const d=JSON.parse(reader.result); if(!Array.isArray(d.channels)||!d.messages)throw Error(); channels=d.channels;messages=d.messages;tasks=d.tasks||[];tickets=d.tickets||[];files=d.files||[];preferences=d.preferences||preferences;fileHistory=d.fileHistory||[];messageHistory=d.messageHistory||[];customFeature=d.customFeature||customFeature;calendarEvents=d.calendarEvents||[];activeChannel=channels[0].id;save();location.reload();}catch(e){alert('Invalid Autofab Terminal backup file.')}};reader.readAsText(file);input.value='';
 }
-function resetApp(){ if(!confirm('Reset all channels, messages, tasks, tickets and settings? This cannot be undone.'))return; ['autofab_messages','autofab_tasks','autofab_tickets','autofab_files','autofab_channels','autofab_preferences','autofab_file_history','autofab_custom_feature','autofab_calendar_events','autofab_api_url'].forEach(k=>localStorage.removeItem(k)); location.reload(); }
+function resetApp(){ if(!confirm('Reset all channels, messages, tasks, tickets and settings? This cannot be undone.'))return; ['autofab_messages','autofab_tasks','autofab_tickets','autofab_files','autofab_channels','autofab_preferences','autofab_file_history','autofab_message_history','autofab_custom_feature','autofab_calendar_events','autofab_api_url'].forEach(k=>localStorage.removeItem(k)); location.reload(); }
 
 
 function openFeatureEditor(){closeSettings();editorWrap.classList.add('show');featureName.value=customFeature.name||'CUSTOM MODULE';featureHTML.value=customFeature.html||'';featureCSS.value=customFeature.css||'';featureJS.value=customFeature.js||'';previewFeature();}
@@ -638,7 +702,7 @@ function openEventEditor(id=null,date='') { closeCalendar(); openModal('event',i
 function renderEventForm(id){
   const e=calendarEvents.find(x=>x.id===id)||{title:'',date:localISODate(new Date()),time:'09:00',channel:activeChannel,priority:'MEDIUM',notes:''};
   modalTitle.textContent=id?'EDIT CALENDAR EVENT':'CREATE CALENDAR EVENT';
-  modalBody.innerHTML=`<label>EVENT TITLE</label><input id="eventTitle" value="${esc(e.title)}"><div class="form-grid"><div><label>DATE</label><input id="eventDate" type="date" value="${esc(e.date)}"></div><div><label>TIME</label><input id="eventTime" type="time" value="${esc(e.time||'')}"></div></div><div class="form-grid"><div><label>ACTIVITY CHANNEL</label><select id="eventChannel">${channels.map(c=>`<option value="${c.id}" ${c.id===e.channel?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div><div><label>PRIORITY</label><select id="eventPriority"><option ${e.priority==='HIGH'?'selected':''}>HIGH</option><option ${e.priority==='MEDIUM'?'selected':''}>MEDIUM</option><option ${e.priority==='LOW'?'selected':''}>LOW</option></select></div></div><label>NOTES</label><textarea id="eventNotes">${esc(e.notes||'')}</textarea><div class="modal-actions">${id?`<button class="cmd-btn danger-btn" onclick="deleteEvent('${id}')">DELETE</button>`:''}<button class="cmd-btn" onclick="closeModal();openCalendar()">CANCEL</button><button class="cmd-btn" onclick="saveEvent('${id||''}')">SAVE EVENT</button></div>`;
+  modalBody.innerHTML=`<label>EVENT TITLE</label><input id="eventTitle" value="${esc(e.title)}"><div class="form-grid"><div><label>DATE</label><input id="eventDate" type="date" value="${esc(e.date)}"></div><div><label>TIME</label><input id="eventTime" type="time" value="${esc(e.time||'')}"></div></div><div class="form-grid"><div><label>ACTIVITY CHANNEL</label><select id="eventChannel">${channels.map(c=>`<option value="${c.id}" ${c.id===e.channel?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div><div><label>PRIORITY</label><select id="eventPriority"><option ${e.priority==='HIGH'?'selected':''}>HIGH</option><option ${e.priority==='MEDIUM'?'selected':''}>MEDIUM</option><option ${e.priority==='LOW'?'selected':''}>LOW</option></select></div></div><label>NOTES</label><textarea id="eventNotes">${esc(e.notes||'')}</textarea>${id?`<div class="calendar-export-note">EXPORT / ADD TO ANOTHER CALENDAR<br>ICS works with Google Calendar, Microsoft Outlook, Apple Calendar and other calendar applications.</div><div class="file-actions"><button class="cmd-btn" onclick="exportEventICS('${id}')">DOWNLOAD .ICS</button><button class="cmd-btn" onclick="addEventToGoogle('${id}')">ADD TO GOOGLE</button><button class="cmd-btn" onclick="addEventToOutlook('${id}')">ADD TO OUTLOOK</button></div>`:''}<div class="modal-actions">${id?`<button class="cmd-btn danger-btn" onclick="deleteEvent('${id}')">DELETE</button>`:''}<button class="cmd-btn" onclick="closeModal();openCalendar()">CANCEL</button><button class="cmd-btn" onclick="saveEvent('${id||''}')">SAVE EVENT</button></div>`;
 }
 function saveEvent(id){
   const title=eventTitle.value.trim();if(!title||!eventDate.value){alert('Event title and date are required.');return;}
@@ -647,8 +711,39 @@ function saveEvent(id){
   messages[record.channel]=messages[record.channel]||[];messages[record.channel].push({type:'system',text:`[CALENDAR] ${record.title} scheduled for ${record.date}${record.time?' '+record.time:''}`});save();closeModal();openCalendar();
 }
 function deleteEvent(id){const e=calendarEvents.find(x=>x.id===id);if(!e||!confirm(`Delete calendar event: ${e.title}?`))return;calendarEvents=calendarEvents.filter(x=>x.id!==id);save();closeModal();openCalendar();}
+
+function padICS(n){return String(n).padStart(2,'0');}
+function parseLocalEventDate(e,end=false){
+  const parts=e.date.split('-').map(Number);const time=(e.time||'09:00').split(':').map(Number);
+  const d=new Date(parts[0],parts[1]-1,parts[2],time[0]||0,time[1]||0,0);
+  if(end)d.setHours(d.getHours()+1);return d;
+}
+function utcICS(d){return d.getUTCFullYear()+padICS(d.getUTCMonth()+1)+padICS(d.getUTCDate())+'T'+padICS(d.getUTCHours())+padICS(d.getUTCMinutes())+padICS(d.getUTCSeconds())+'Z';}
+function escapeICS(v=''){return String(v).replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');}
+function foldICS(line){const out=[];while(line.length>73){out.push(line.slice(0,73));line=' '+line.slice(73);}out.push(line);return out.join('\r\n');}
+function eventICS(e){
+  const channel=channels.find(c=>c.id===e.channel)?.name||e.channel||'GENERAL';
+  return ['BEGIN:VEVENT',`UID:${escapeICS(e.id)}@autofab-terminal`,`DTSTAMP:${utcICS(new Date())}`,`DTSTART:${utcICS(parseLocalEventDate(e))}`,`DTEND:${utcICS(parseLocalEventDate(e,true))}`,`SUMMARY:${escapeICS(e.title)}`,`DESCRIPTION:${escapeICS((e.notes||'')+'\\nActivity: '+channel+'\\nPriority: '+(e.priority||'MEDIUM'))}`,`CATEGORIES:${escapeICS(channel)},${escapeICS(e.priority||'MEDIUM')}`,'BEGIN:VALARM','TRIGGER:-PT15M','ACTION:DISPLAY',`DESCRIPTION:${escapeICS(e.title)}`,'END:VALARM','END:VEVENT'].map(foldICS).join('\r\n');
+}
+function calendarICS(list){return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Autofab//Team Terminal Calendar//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH',...list.map(eventICS),'END:VCALENDAR'].join('\r\n');}
+function downloadTextFile(name,text,type){const blob=new Blob([text],{type:type||'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function safeFileName(v){return String(v||'event').replace(/[^a-z0-9_-]+/gi,'-').replace(/^-|-$/g,'').slice(0,70)||'event';}
+function exportEventICS(id){const e=calendarEvents.find(x=>x.id===id);if(!e)return;downloadTextFile(safeFileName(e.title)+'.ics',calendarICS([e]),'text/calendar;charset=utf-8');}
+function exportAllCalendarICS(){if(!calendarEvents.length){alert('There are no calendar events to export.');return;}downloadTextFile('autofab-team-calendar.ics',calendarICS(calendarEvents),'text/calendar;charset=utf-8');}
+function googleDateRange(e){return utcICS(parseLocalEventDate(e))+'/'+utcICS(parseLocalEventDate(e,true));}
+function addEventToGoogle(id){
+  const e=calendarEvents.find(x=>x.id===id);if(!e)return;const channel=channels.find(c=>c.id===e.channel)?.name||e.channel||'';
+  const q=new URLSearchParams({action:'TEMPLATE',text:e.title,dates:googleDateRange(e),details:(e.notes||'')+'\nActivity: '+channel+'\nPriority: '+(e.priority||'MEDIUM')});
+  window.open('https://calendar.google.com/calendar/render?'+q.toString(),'_blank','noopener');
+}
+function addEventToOutlook(id){
+  const e=calendarEvents.find(x=>x.id===id);if(!e)return;const channel=channels.find(c=>c.id===e.channel)?.name||e.channel||'';
+  const q=new URLSearchParams({path:'/calendar/action/compose',rru:'addevent',subject:e.title,startdt:parseLocalEventDate(e).toISOString(),enddt:parseLocalEventDate(e,true).toISOString(),body:(e.notes||'')+'\nActivity: '+channel+'\nPriority: '+(e.priority||'MEDIUM')});
+  window.open('https://outlook.office.com/calendar/0/deeplink/compose?'+q.toString(),'_blank','noopener');
+}
+
 function api(path=''){ return (apiUrl||'').replace(/\/$/,'')+path; }
-function appState(){ return {channels,messages,tasks,tickets,files,preferences,fileHistory,customFeature,calendarEvents}; }
+function appState(){ return {channels,messages,tasks,tickets,files,preferences,fileHistory,messageHistory,customFeature,calendarEvents}; }
 function setCloud(text,online){ const el=document.getElementById('cloudState');if(!el)return;el.textContent=text;el.classList.toggle('online',!!online);el.classList.toggle('offline',online===false); }
 async function testServer(){ try{const r=await fetch(api('/api/health'));if(!r.ok)throw Error();const d=await r.json();setCloud('DB: '+String(d.database||'ONLINE').toUpperCase(),true);alert('Backend and MongoDB connection are working.');}catch(e){setCloud('DB: OFFLINE',false);alert('Cannot connect to backend. Start server.js and check the API URL.');} }
 async function pushState(){
@@ -656,7 +751,7 @@ async function pushState(){
 }
 async function loadServerState(silent=false){
   try{const r=await fetch(api('/api/state'));if(!r.ok)throw Error();const d=await r.json();if(!d||!d.state){setCloud('DB: EMPTY',true);return;}
-    isApplyingServerState=true;const x=d.state;channels=x.channels||channels;messages=x.messages||messages;tasks=x.tasks||tasks;tickets=x.tickets||tickets;files=x.files||files;preferences=x.preferences||preferences;fileHistory=x.fileHistory||fileHistory;customFeature=x.customFeature||customFeature;calendarEvents=x.calendarEvents||calendarEvents;activeChannel=channels[0]?.id||activeChannel;save();isApplyingServerState=false;applyPreferences();renderChannels();renderMessages();renderTab();mountCustomFeature();setCloud('DB: LOADED',true);if(!silent)alert('MongoDB data loaded.');
+    isApplyingServerState=true;const x=d.state;channels=x.channels||channels;messages=x.messages||messages;tasks=x.tasks||tasks;tickets=x.tickets||tickets;files=x.files||files;preferences=x.preferences||preferences;fileHistory=x.fileHistory||fileHistory;messageHistory=x.messageHistory||messageHistory;customFeature=x.customFeature||customFeature;calendarEvents=x.calendarEvents||calendarEvents;activeChannel=channels[0]?.id||activeChannel;save();isApplyingServerState=false;applyPreferences();renderChannels();renderMessages();renderTab();mountCustomFeature();setCloud('DB: LOADED',true);if(!silent)alert('MongoDB data loaded.');
   }catch(e){isApplyingServerState=false;setCloud('DB: LOCAL MODE',false);if(!silent)alert('Server data could not be loaded.');}
 }
 function saveApiSettings(){apiUrl=apiUrlInput.value.trim();localStorage.setItem('autofab_api_url',apiUrl);testServer();}
