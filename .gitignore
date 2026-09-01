@@ -1,0 +1,54 @@
+# Dependencies
+node_modules/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime files
+pids/
+*.pid
+*.pid.lock
+
+# Test coverage and caches
+coverage/
+.nyc_output/
+.cache/
+.npm/
+.eslintcache
+
+# Uploaded files if server-side uploads are added later
+uploads/
+storage/
+temp/
+tmp/
+
+# Local database/data exports
+*.db
+*.sqlite
+*.sqlite3
+backups/
+exports/
+
+# Editor settings
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build output
+dist/
+build/
