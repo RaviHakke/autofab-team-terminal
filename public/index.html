@@ -491,6 +491,7 @@ function deleteMessage(id){const list=messages[activeChannel]||[];const m=list.f
 function restoreMessage(channel,id){const m=(messages[channel]||[]).find(x=>x.id===id);if(!m)return;m.deleted=false;m.deletedAt=null;addMessageHistory('MESSAGE RESTORED',m,channel);save();renderMessages();renderTab();}
 function permanentDeleteMessage(channel,id){const list=messages[channel]||[];const m=list.find(x=>x.id===id);if(!m||!confirm('Permanently delete this message? This cannot be undone.'))return;addMessageHistory('MESSAGE PERMANENTLY DELETED',m,channel);messages[channel]=list.filter(x=>x.id!==id);save();renderMessages();renderTab();}
 function now(){ return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false}); }
+
 function sanitizeRichHTML(html){
   const box=document.createElement('div'); box.innerHTML=html;
   box.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(x=>x.remove());
@@ -498,10 +499,13 @@ function sanitizeRichHTML(html){
     [...el.attributes].forEach(a=>{
       if(a.name.toLowerCase().startsWith('on')) el.removeAttribute(a.name);
       if(['class','id','lang','dir','data-contrast','data-ccp-props'].includes(a.name.toLowerCase())) el.removeAttribute(a.name);
+      // Hardened mitigation against javascript injection bypassing
+      if(a.value.toLowerCase().includes('javascript:')) el.removeAttribute(a.name);
     });
   });
   return box.innerHTML;
 }
+
 function handleRichPaste(e){
   const html=e.clipboardData.getData('text/html');
   const plain=e.clipboardData.getData('text/plain');
@@ -598,15 +602,30 @@ function renderTab(){
 async function clearFileBin(skipConfirm=false){
   const trash=files.filter(x=>x.deleted);if(!trash.length){if(!skipConfirm)alert('File Recycle Bin is already empty.');return true;}
   if(!skipConfirm&&!confirm(`Permanently delete all ${trash.length} recycled file(s)? This cannot be undone.`))return false;
-  try{const db=await openFileDB();await Promise.all(trash.map(f=>new Promise(resolve=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').delete(f.id);tx.oncomplete=resolve;tx.onerror=resolve;})));}catch(e){}
-  trash.forEach(f=>addFileHistory('PERMANENTLY DELETED BY CLEAR BIN:',f.name));files=files.filter(x=>!x.deleted);save();renderTab();return true;
+
+  try {
+    const db=await openFileDB();
+    await Promise.all(trash.map(async (f) => {
+      // Deletes the backend physical file if it exists on server
+      if(/^[a-f0-9]{24}$/i.test(f.id)) {
+        await fetch(api('/api/files/'+f.id), { method: 'DELETE' }).catch(e=>console.error(e));
+      }
+      return new Promise(resolve=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').delete(f.id);tx.oncomplete=resolve;tx.onerror=resolve;});
+    }));
+  } catch(e) { console.error(e); }
+
+  trash.forEach(f=>addFileHistory('PERMANENTLY DELETED BY CLEAR BIN:',f.name));
+  files=files.filter(x=>!x.deleted);
+  save();renderTab();return true;
 }
+
 function clearMessageBin(skipConfirm=false){
   const deleted=Object.entries(messages).flatMap(([channel,list])=>list.filter(m=>m.deleted).map(m=>({channel,m})));
   if(!deleted.length){if(!skipConfirm)alert('Message Recycle Bin is already empty.');return true;}
   if(!skipConfirm&&!confirm(`Permanently delete all ${deleted.length} recycled message(s)? This cannot be undone.`))return false;
   deleted.forEach(x=>addMessageHistory('MESSAGE PERMANENTLY DELETED BY CLEAR BIN',x.m,x.channel));Object.keys(messages).forEach(channel=>messages[channel]=messages[channel].filter(m=>!m.deleted));save();renderMessages();renderTab();return true;
 }
+
 async function clearAllBins(){
   const fc=files.filter(x=>x.deleted).length,mc=Object.values(messages).flat().filter(m=>m.deleted).length;
   if(!fc&&!mc){alert('All recycle bins are already empty.');return;}
@@ -620,7 +639,24 @@ function historyTime(){return new Date().toLocaleString('en-IN',{hour12:false});
 function addFileHistory(action,name){fileHistory.unshift({action,name,at:historyTime(),by:preferences.name});if(fileHistory.length>500)fileHistory.length=500;}
 function moveFileToRecycle(id){const f=files.find(x=>x.id===id);if(!f||!confirm(`Move ${f.name} to Recycle Bin?`))return;f.deleted=true;f.deletedAt=historyTime();addFileHistory('MOVED TO RECYCLE BIN:',f.name);save();renderTab();}
 function restoreFile(id){const f=files.find(x=>x.id===id);if(!f)return;f.deleted=false;f.deletedAt=null;addFileHistory('RESTORED:',f.name);save();renderTab();}
-async function permanentDeleteFile(id){const f=files.find(x=>x.id===id);if(!f||!confirm(`Permanently delete ${f.name}? This cannot be undone.`))return;try{const db=await openFileDB();await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});}catch(e){}files=files.filter(x=>x.id!==id);addFileHistory('PERMANENTLY DELETED:',f.name);save();renderTab();}
+
+async function permanentDeleteFile(id){
+  const f=files.find(x=>x.id===id);
+  if(!f||!confirm(`Permanently delete ${f.name}? This cannot be undone.`))return;
+  
+  try {
+    if(/^[a-f0-9]{24}$/i.test(id)) {
+      await fetch(api('/api/files/'+id), { method: 'DELETE' }).catch(e=>console.error(e));
+    }
+    const db=await openFileDB();
+    await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});
+  } catch(e) { console.error('Deletion error:', e); }
+
+  files=files.filter(x=>x.id!==id);
+  addFileHistory('PERMANENTLY DELETED:',f.name);
+  save(); renderTab();
+}
+
 function openModal(type, recordId=null){
   modalWrap.classList.add('show'); modalWrap.dataset.type=type;
   if(type==='task'){

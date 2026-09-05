@@ -19,6 +19,7 @@ if (!MONGODB_URI) {
 
 fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
+// File Upload Configuration
 const storage = multer.diskStorage({
   destination: (req, file, callback) => callback(null, UPLOAD_DIR),
   filename: (req, file, callback) => {
@@ -48,8 +49,6 @@ async function connectDatabase() {
   await mongoClient.connect();
   database = mongoClient.db(DB_NAME);
   await database.command({ ping: 1 });
-  await database.collection('app_state').createIndex({ key: 1 }, { unique: true });
-
   console.log(`MongoDB connected: ${DB_NAME}`);
 }
 
@@ -63,6 +62,7 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
+// Create File
 app.post('/api/files', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -92,6 +92,7 @@ app.post('/api/files', upload.single('file'), async (req, res) => {
   }
 });
 
+// Read File
 app.get('/api/files/:id', async (req, res) => {
   try {
     if (!ObjectId.isValid(req.params.id)) {
@@ -120,13 +121,45 @@ app.get('/api/files/:id', async (req, res) => {
   }
 });
 
+// Delete File
+app.delete('/api/files/:id', async (req, res) => {
+  try {
+    if (!ObjectId.isValid(req.params.id)) return res.status(400).json({ error: 'Invalid file ID.' });
+    
+    const fileRecord = await database.collection('uploaded_files').findOne({ _id: new ObjectId(req.params.id) });
+    if (!fileRecord) return res.status(404).json({ error: 'File not found.' });
+
+    const filePath = path.join(UPLOAD_DIR, fileRecord.storedName);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+
+    await database.collection('uploaded_files').deleteOne({ _id: new ObjectId(req.params.id) });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('File deletion failed:', error.message);
+    res.status(500).json({ error: 'Unable to delete file.' });
+  }
+});
+
+// Normalized Data Architecture
 app.get('/api/state', async (req, res) => {
   try {
-    const document = await database.collection('app_state').findOne({ key: 'main' });
-    res.json({
-      state: document?.state || null,
-      updatedAt: document?.updatedAt || null
-    });
+    const [meta, channels, messages, tasks, tickets] = await Promise.all([
+      database.collection('app_state_meta').findOne({ key: 'main' }),
+      database.collection('app_channels').findOne({ key: 'main' }),
+      database.collection('app_messages').findOne({ key: 'main' }),
+      database.collection('app_tasks').findOne({ key: 'main' }),
+      database.collection('app_tickets').findOne({ key: 'main' })
+    ]);
+
+    const state = {
+      ...(meta?.data || {}),
+      channels: channels?.data || null,
+      messages: messages?.data || null,
+      tasks: tasks?.data || null,
+      tickets: tickets?.data || null
+    };
+
+    res.json({ state, updatedAt: meta?.updatedAt || null });
   } catch (error) {
     console.error('Load state failed:', error.message);
     res.status(500).json({ error: 'Unable to load application data.' });
@@ -141,13 +174,16 @@ app.put('/api/state', async (req, res) => {
       return res.status(400).json({ error: 'Invalid application state.' });
     }
 
+    const { channels, messages, tasks, tickets, ...metaData } = state;
     const updatedAt = new Date();
 
-    await database.collection('app_state').updateOne(
-      { key: 'main' },
-      { $set: { state, updatedAt } },
-      { upsert: true }
-    );
+    await Promise.all([
+      database.collection('app_channels').updateOne({ key: 'main' }, { $set: { data: channels } }, { upsert: true }),
+      database.collection('app_messages').updateOne({ key: 'main' }, { $set: { data: messages } }, { upsert: true }),
+      database.collection('app_tasks').updateOne({ key: 'main' }, { $set: { data: tasks } }, { upsert: true }),
+      database.collection('app_tickets').updateOne({ key: 'main' }, { $set: { data: tickets } }, { upsert: true }),
+      database.collection('app_state_meta').updateOne({ key: 'main' }, { $set: { data: metaData, updatedAt } }, { upsert: true })
+    ]);
 
     res.json({ ok: true, updatedAt });
   } catch (error) {

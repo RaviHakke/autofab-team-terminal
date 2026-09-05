@@ -1,0 +1,16 @@
+# Environment Variables
+.env
+
+# Node.js Dependencies
+node_modules/
+
+# Multer File Uploads Directory
+uploads/
+
+# Logs
+logs
+*.log
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
