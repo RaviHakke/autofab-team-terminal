@@ -340,7 +340,9 @@
   <header class="topbar">
     <div class="brand">
       <button class="icon-btn mobile-menu-btn" onclick="toggleSidebar()" title="Menu">[≡]</button>
-      <span class="prompt" title="Click for a surprise!" onclick="openTankGame()">C:\&gt;</span> <span class="app-title">AUTOFAB_TEAM_TERMINAL</span>
+      <span class="prompt" title="Insert Game Cartridge" onclick="document.getElementById('gameCartridgeInput').click()">C:\&gt;</span> 
+      <span class="app-title">AUTOFAB_TEAM_TERMINAL</span>
+      <input type="file" id="gameCartridgeInput" accept=".json" hidden onchange="loadGameCartridge(this)">
     </div>
     <div class="top-actions">
       <button class="icon-btn" onclick="openSettings()" title="Settings">[⚙]</button>
@@ -434,16 +436,16 @@
   <footer class="footer"><span>SYS: CONNECTED | STORAGE: SERVER + MONGODB | ENCRYPTION: DEMO MODE</span><span id="clock"></span></footer>
 </div>
 
-<!-- SURPRISE TANK GAME MODAL -->
-<div id="tankGameWrap" class="modal-wrap" onclick="if(event.target===this)closeTankGame()">
-  <div class="modal" style="width: 840px; max-width: 95vw; overflow: hidden; display: flex; flex-direction: column;">
-    <div class="modal-head">
-      <strong>TERMINAL TANKS</strong>
-      <button class="icon-btn" onclick="closeTankGame()">[X]</button>
+<!-- GAME CARTRIDGE MODAL -->
+<div id="gameWrap" class="modal-wrap" onclick="if(event.target===this)closeGame()">
+  <div class="modal" style="width: 840px; max-width: 95vw; overflow: hidden; display: flex; flex-direction: column; background: #000; border-color: #555;">
+    <div class="modal-head" style="background: #111; border-color: #333;">
+      <strong id="gameTitle" style="color: #fff; text-shadow: 0 0 5px #fff;">INSERT CARTRIDGE...</strong>
+      <button class="icon-btn" onclick="closeGame()">[X]</button>
     </div>
-    <div class="modal-body" style="text-align:center; padding: 10px; background: #111; position: relative;">
-      <canvas id="tankCanvas" width="800" height="500" style="background: #222; border: 1px solid var(--green); max-width: 100%; object-fit: contain; cursor: crosshair;"></canvas>
-      <div style="color:var(--green-soft); font-size:11px; margin-top:10px; font-weight: bold;">WASD / Arrows to Move | Mouse to Aim & Shoot | Defeat Red Tanks</div>
+    <div class="modal-body" style="text-align:center; padding: 10px; position: relative;">
+      <iframe id="gameIframe" style="width:100%; height:500px; border:1px solid #333; background:#000;"></iframe>
+      <div id="gameDesc" style="color:#aaa; font-size:11px; margin-top:10px; font-family: monospace;"></div>
     </div>
   </div>
 </div>
@@ -521,7 +523,7 @@
       </section>
       <section class="settings-section">
         <div class="settings-section-title">ABOUT</div>
-        <div class="settings-section-body card-meta">AUTOFAB TEAM TERMINAL v1.7<br>MODE: STANDALONE HTML<br>STORAGE: BROWSER LOCAL STORAGE</div>
+        <div class="settings-section-body card-meta">AUTOFAB TEAM TERMINAL v1.8<br>MODE: STANDALONE HTML<br>STORAGE: BROWSER LOCAL STORAGE</div>
       </section>
     </div>
   </aside>
@@ -671,184 +673,60 @@ let apiUrl = localStorage.getItem('autofab_api_url') || '';
 let syncTimer = null;
 let isApplyingServerState = false;
 
-/* --- TANK GAME LOGIC --- */
-let tankGameRunning = false;
-let tankKeys = {};
-function openTankGame() {
-    document.getElementById('tankGameWrap').classList.add('show');
-    tankGameRunning = true;
-    startTankGame();
-}
-function closeTankGame() {
-    document.getElementById('tankGameWrap').classList.remove('show');
-    tankGameRunning = false;
-}
-
-function startTankGame() {
-    const cvs = document.getElementById('tankCanvas');
-    const ctx = cvs.getContext('2d');
-    tankKeys = {};
-    
-    let mouseX = cvs.width/2, mouseY = cvs.height/2;
-    cvs.onmousemove = e => {
-        const rect = cvs.getBoundingClientRect();
-        mouseX = (e.clientX - rect.left) * (cvs.width / rect.width);
-        mouseY = (e.clientY - rect.top) * (cvs.height / rect.height);
-    };
-    
-    let player = {x: 400, y: 250, angle: 0, speed: 3, hp: 100, maxHp: 100, reload: 0, score: 0};
-    let bullets = [];
-    let enemies = [];
-    let particles = [];
-    let camX = 0, camY = 0; 
-
-    cvs.onmousedown = () => {
-        if (player.reload <= 0 && player.hp > 0 && tankGameRunning) {
-            let angle = Math.atan2(mouseY - cvs.height/2, mouseX - cvs.width/2);
-            bullets.push({x: player.x + Math.cos(angle)*20, y: player.y + Math.sin(angle)*20, vx: Math.cos(angle)*10, vy: Math.sin(angle)*10, isPlayer: true, life: 70});
-            player.reload = 12;
+/* --- GAME CARTRIDGE LOGIC --- */
+function loadGameCartridge(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+        try {
+            const cart = JSON.parse(reader.result);
+            if (!cart.js) throw new Error("Invalid cartridge format.");
+            playGame(cart);
+        } catch(e) {
+            alert("Cartridge Error: The JSON file does not contain a valid game.");
         }
     };
+    reader.readAsText(file);
+    input.value = '';
+}
 
-    function spawnEnemy() {
-        let angle = Math.random() * Math.PI * 2;
-        let dist = 600 + Math.random() * 300;
-        enemies.push({ x: player.x + Math.cos(angle)*dist, y: player.y + Math.sin(angle)*dist, hp: 30, reload: 0 });
-    }
+function playGame(cart) {
+    document.getElementById('gameTitle').textContent = cart.title || "TERMINAL GAME";
+    document.getElementById('gameDesc').textContent = cart.description || "";
+    document.getElementById('gameWrap').classList.add('show');
     
-    for(let i=0; i<6; i++) spawnEnemy();
+    const iframe = document.getElementById('gameIframe');
+    const doc = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; background: #000; color: #35ff67; font-family: monospace; }
+        ${cart.css || ''}
+      </style>
+    </head>
+    <body>
+      ${cart.html || ''}
+      <script>
+        ${cart.js}
+      <\/script>
+    </body>
+    </html>
+    `;
+    iframe.srcdoc = doc;
+}
 
-    function loop() {
-        if(!tankGameRunning) return;
-        
-        if (player.hp > 0) {
-            if (tankKeys['KeyW'] || tankKeys['ArrowUp']) { player.y -= player.speed; player.angle = -Math.PI/2; }
-            if (tankKeys['KeyS'] || tankKeys['ArrowDown']) { player.y += player.speed; player.angle = Math.PI/2; }
-            if (tankKeys['KeyA'] || tankKeys['ArrowLeft']) { player.x -= player.speed; player.angle = Math.PI; }
-            if (tankKeys['KeyD'] || tankKeys['ArrowRight']) { player.x += player.speed; player.angle = 0; }
-            if (player.reload > 0) player.reload--;
-        }
-
-        camX = player.x - cvs.width/2;
-        camY = player.y - cvs.height/2;
-
-        if (Math.random() < 0.02 && enemies.length < 15) spawnEnemy();
-
-        enemies.forEach(e => {
-            let dx = player.x - e.x;
-            let dy = player.y - e.y;
-            let dist = Math.hypot(dx, dy);
-            if (dist > 250) { e.x += (dx/dist) * 1.5; e.y += (dy/dist) * 1.5; }
-            if (dist < 500 && e.reload <= 0 && player.hp > 0) {
-                let angle = Math.atan2(dy, dx) + (Math.random()-0.5)*0.2;
-                bullets.push({x: e.x, y: e.y, vx: Math.cos(angle)*6, vy: Math.sin(angle)*6, isPlayer: false, life: 100});
-                e.reload = 50 + Math.random()*50;
-            }
-            if (e.reload > 0) e.reload--;
-        });
-
-        bullets.forEach(b => {
-            b.x += b.vx; b.y += b.vy; b.life--;
-            if (b.isPlayer) {
-                enemies.forEach(e => {
-                    if (Math.hypot(b.x - e.x, b.y - e.y) < 25) {
-                        e.hp -= 15; b.life = 0;
-                        for(let i=0;i<8;i++) particles.push({x:b.x, y:b.y, vx:(Math.random()-0.5)*6, vy:(Math.random()-0.5)*6, life: 15, c: '#ff5757'});
-                        if(e.hp <= 0) player.score += 10;
-                    }
-                });
-            } else {
-                if (Math.hypot(b.x - player.x, b.y - player.y) < 20 && player.hp > 0) {
-                    player.hp -= 10; b.life = 0;
-                    for(let i=0;i<8;i++) particles.push({x:b.x, y:b.y, vx:(Math.random()-0.5)*6, vy:(Math.random()-0.5)*6, life: 15, c: '#35ff67'});
-                }
-            }
-        });
-        
-        enemies = enemies.filter(e => e.hp > 0);
-        bullets = bullets.filter(b => b.life > 0);
-        particles.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.life--; });
-        particles = particles.filter(p => p.life > 0);
-
-        // Render
-        ctx.fillStyle = '#1a1a1a';
-        ctx.fillRect(0, 0, cvs.width, cvs.height);
-
-        ctx.save();
-        ctx.translate(-camX, -camY);
-
-        ctx.strokeStyle = '#2a2a2a';
-        ctx.lineWidth = 2;
-        const gridSize = 100;
-        let startX = Math.floor(camX / gridSize) * gridSize;
-        let startY = Math.floor(camY / gridSize) * gridSize;
-        ctx.beginPath();
-        for(let x = startX; x < startX + cvs.width + gridSize; x += gridSize) { ctx.moveTo(x, camY); ctx.lineTo(x, camY + cvs.height); }
-        for(let y = startY; y < startY + cvs.height + gridSize; y += gridSize) { ctx.moveTo(camX, y); ctx.lineTo(camX + cvs.width, y); }
-        ctx.stroke();
-
-        enemies.forEach(e => {
-            ctx.fillStyle = '#ff5757';
-            ctx.fillRect(e.x - 15, e.y - 15, 30, 30);
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(e.x - 15, e.y - 25, 30 * (e.hp/30), 4);
-        });
-
-        if (player.hp > 0) {
-            ctx.fillStyle = '#35ff67';
-            ctx.translate(player.x, player.y);
-            ctx.rotate(player.angle);
-            ctx.fillRect(-15, -15, 30, 30);
-            ctx.rotate(-player.angle);
-            
-            let barrelAngle = Math.atan2(mouseY - cvs.height/2, mouseX - cvs.width/2);
-            ctx.rotate(barrelAngle);
-            ctx.fillStyle = '#91ffa7';
-            ctx.fillRect(0, -4, 25, 8);
-            ctx.rotate(-barrelAngle);
-            ctx.translate(-player.x, -player.y);
-        }
-
-        bullets.forEach(b => {
-            ctx.fillStyle = b.isPlayer ? '#4dfcff' : '#ffd43b';
-            ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, Math.PI*2); ctx.fill();
-        });
-        particles.forEach(p => {
-            ctx.fillStyle = p.c;
-            ctx.fillRect(p.x, p.y, 4, 4);
-        });
-
-        ctx.restore();
-        
-        if (player.hp > 0) {
-            ctx.fillStyle = '#fff'; ctx.font = 'bold 16px monospace';
-            ctx.fillText('HP: ' + player.hp, 20, 30);
-            ctx.fillText('SCORE: ' + player.score, 20, 50);
-        } else {
-            ctx.fillStyle = '#ff5757'; ctx.font = 'bold 40px monospace';
-            ctx.fillText('GAME OVER', cvs.width/2 - 105, cvs.height/2);
-            ctx.fillStyle = '#fff'; ctx.font = '20px monospace';
-            ctx.fillText('Score: ' + player.score, cvs.width/2 - 50, cvs.height/2 + 30);
-            ctx.fillText('Click to Restart', cvs.width/2 - 90, cvs.height/2 + 60);
-            cvs.onclick = () => { if(player.hp <= 0) { player = {x: camX+cvs.width/2, y: camY+cvs.height/2, angle: 0, speed: 3, hp: 100, maxHp: 100, reload: 0, score: 0}; enemies=[]; for(let i=0; i<5; i++) spawnEnemy(); } };
-        }
-
-        requestAnimationFrame(loop);
-    }
-    loop();
+function closeGame() {
+    document.getElementById('gameWrap').classList.remove('show');
+    document.getElementById('gameIframe').srcdoc = ''; // Instantly kills the game loop and audio
 }
 
 document.addEventListener('keydown', e => {
     if(e.key==='Escape') {
         if(document.getElementById('themeStudio').classList.contains('show')) closeThemeStudio();
-        if(document.getElementById('tankGameWrap').classList.contains('show')) closeTankGame();
+        if(document.getElementById('gameWrap').classList.contains('show')) closeGame();
     }
-    if (tankGameRunning && ['KeyW','KeyA','KeyS','KeyD','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) {
-        tankKeys[e.code] = true;
-    }
-});
-document.addEventListener('keyup', e => {
-    if (tankGameRunning) tankKeys[e.code] = false;
 });
 
 /* --- THEME STUDIO DATA & LOGIC --- */
@@ -956,12 +834,15 @@ function exportCurrentTheme() {
     a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+// Mobile Sidebar Toggle
 function toggleSidebar() {
   const sb = document.getElementById('appSidebar');
   const shade = document.getElementById('sidebarShade');
   sb.classList.toggle('show-mobile');
   shade.classList.toggle('show');
 }
+
+/* ------------------------------- */
 
 function save(){
   localStorage.setItem('autofab_messages',JSON.stringify(messages));
@@ -1000,7 +881,6 @@ function renderMessages(filter=''){
   const list=(messages[activeChannel]||[]).filter(m=>!m.deleted&&(m.text||'').toLowerCase().includes(filter.toLowerCase()));
   const messagesEl=document.getElementById('messages');
   
-  // Track scroll position to keep it pinned to bottom if they were already at the bottom
   const isScrolledToBottom = messagesEl.scrollHeight - messagesEl.clientHeight <= messagesEl.scrollTop + 50;
 
   messagesEl.innerHTML=list.map(m=>{
@@ -1139,6 +1019,7 @@ async function clearFileBin(skipConfirm=false){
   try {
     const db=await openFileDB();
     await Promise.all(trash.map(async (f) => {
+      // Deletes the backend physical file if it exists on server
       if(/^[a-f0-9]{24}$/i.test(f.id)) {
         await fetch(api('/api/files/'+f.id), { method: 'DELETE' }).catch(e=>console.error(e));
       }
@@ -1374,7 +1255,6 @@ async function pollServer() {
     const serverMsgs = d.state.messages;
     let needsUpdate = false;
     
-    // Check if there's new data we don't have locally
     if (serverMsgs[activeChannel] && (!messages[activeChannel] || serverMsgs[activeChannel].length > messages[activeChannel].length)) {
         needsUpdate = true;
     }
