@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Autofab Team Terminal</title>
+  <style id="custom-theme-style"></style>
   <style>
     :root {
       --bg: #020702;
@@ -28,60 +29,56 @@
     body {
       margin: 0;
       overflow: hidden;
-      background: radial-gradient(circle at top, var(--panel-2) 0%, var(--bg) 56%);
+      background: radial-gradient(circle at top, #0a1c0b 0%, var(--bg) 56%);
       color: var(--green);
       font-family: var(--ui-font);
       font-size: 14px;
       transition: background 0.4s ease;
     }
     body:after {
-      content: ""; pointer-events: none; position: fixed; inset: 0;
+      content: "";
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
       background: repeating-linear-gradient(to bottom, rgba(255,255,255,.018) 0, rgba(255,255,255,.018) 1px, transparent 2px, transparent 4px);
       z-index: 100;
     }
-    body.no-scanlines:after { display:none; }
-    
-    button, input, textarea, select { font: inherit; }
+    button, input, textarea, select { font: inherit; font-family: var(--ui-font); }
     button { cursor: pointer; transition: all 0.2s ease; }
     .app { height: 100vh; display: grid; grid-template-rows: 48px 1fr 27px; }
     .topbar {
-      border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; justify-content: space-between;
       padding: 0 14px; background: var(--panel); box-shadow: var(--shadow);
     }
     .brand { display: flex; align-items: center; gap: 10px; font-weight: bold; letter-spacing: .8px; }
-    .prompt { color: #fff; background: var(--green); padding: 3px 7px; color: var(--bg); border-radius: var(--ui-radius); }
+    .prompt { color: var(--bg); background: var(--green); padding: 3px 7px; border-radius: var(--ui-radius); }
     .top-actions { display: flex; align-items: center; gap: 8px; }
     .status-dot { width: 8px; height: 8px; display: inline-block; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
-    
     .main { min-height: 0; display: grid; grid-template-columns: 245px minmax(400px, 1fr) 330px; }
     .sidebar, .rightbar, .workspace { min-height: 0; }
     .sidebar { border-right: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; }
     .side-scroll { overflow-y: auto; padding: 10px; }
     .section-head { color: var(--green-soft); font-size: 12px; letter-spacing: 1.2px; margin: 8px 6px; display: flex; justify-content: space-between; }
-    
     .channel {
       width: 100%; color: var(--green); border: 0; background: transparent; text-align: left;
       padding: 10px 9px; border-left: 2px solid transparent; display: flex; justify-content: space-between;
       border-radius: var(--ui-radius); margin-bottom: 2px;
     }
-    .channel:hover, .channel.active { background: var(--panel-2); border-left-color: var(--green); text-shadow: 0 0 8px var(--green); }
+    .channel:hover, .channel.active { background: var(--panel-2); border-left-color: var(--green); text-shadow: 0 0 8px rgba(53,255,103,.65); }
     .badge { min-width: 21px; text-align: center; padding: 1px 5px; border: 1px solid var(--line); color: var(--green-soft); font-size: 11px; border-radius: var(--ui-radius); }
-    
     .quick { padding: 10px; border-top: 1px solid var(--line); margin-top: auto; }
     .cmd-btn, .icon-btn {
       border: 1px solid var(--line); color: var(--green); background: var(--btn-bg); padding: 8px 10px; border-radius: var(--ui-radius);
     }
-    .cmd-btn:hover, .icon-btn:hover { color: var(--bg); background: var(--green); box-shadow: 0 0 14px var(--green); }
+    .cmd-btn:hover, .icon-btn:hover { color: var(--bg); background: var(--green); box-shadow: 0 0 14px rgba(53,255,103,.28); }
     .quick .cmd-btn { width: 100%; margin-top: 6px; text-align: left; }
-    
     .workspace { display: grid; grid-template-rows: 55px 1fr auto; background: var(--bg); position: relative; isolation: isolate; }
     .workspace:before { content:""; position:absolute; inset:55px 0 0; z-index:-2; background:var(--msg-bg, transparent); background-size:cover; opacity:var(--msg-opacity, 1); }
     .workspace:after { content:""; position:absolute; inset:55px 0 0; z-index:-1; background-image:var(--msg-pattern, none); background-size:24px 24px; opacity:var(--pattern-opacity, 0); }
-    
     .chat-head { border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; padding: 0 14px; background: var(--panel); }
     .chat-title { font-size: 17px; font-weight: bold; }
     .chat-sub { color: var(--dim); font-size: 11px; margin-top: 3px; }
-    
     .messages { overflow-y: auto; padding: 14px; scroll-behavior: smooth; background: transparent !important; }
     .message { display: grid; grid-template-columns: 38px 1fr; gap: 10px; padding: 9px; margin-bottom: 7px; border: 1px solid transparent; border-radius: var(--ui-radius); background: rgba(0,0,0,var(--card-opacity, 0)); backdrop-filter: blur(var(--card-blur, 0px)); transition: transform 0.2s, box-shadow 0.2s, background 0.2s; }
     .message:hover { border-color: var(--line); background: var(--msg-hover); }
@@ -91,7 +88,7 @@
     .time { color: var(--dim); font-size: 11px; }
     .text { color: var(--text-main); line-height: 1.5; white-space: pre-wrap; margin-top: 4px; overflow-wrap: anywhere; }
     .system-msg { border-left: 2px solid var(--amber); color: var(--amber); padding: 8px 10px; margin: 8px 0; background: rgba(255,212,59,.04); border-radius: var(--ui-radius); }
-    
+    .attachment { display: inline-flex; align-items: center; gap: 8px; padding: 7px 9px; border: 1px dashed var(--line); margin-top: 7px; color: var(--cyan); border-radius: var(--ui-radius); }
     .composer { border-top: 1px solid var(--line); padding: 9px 12px 11px; background: var(--panel); }
     .attachment-preview { display: none; color: var(--cyan); padding: 5px 0; font-size: 12px; }
     .compose-row { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: end; }
@@ -99,7 +96,18 @@
     .rich-editor { min-height:44px; max-height:150px; overflow:auto; border:1px solid var(--line); outline:0; color:var(--text-main); background:var(--btn-bg); padding:11px; line-height:1.45; border-radius: var(--ui-radius); }
     .rich-editor:empty:before { content:attr(data-placeholder); color:var(--dim); }
     .rich-editor:focus { box-shadow:inset 0 0 0 1px var(--green); }
-    
+    .rich-editor table, .rich-content table { border-collapse:collapse; width:auto; min-width:420px; margin:8px 0; color:inherit; }
+    .rich-editor th, .rich-editor td, .rich-content th, .rich-content td { border:1px solid var(--line); padding:6px 8px; text-align:left; }
+    .rich-content { color:var(--text-main); line-height:1.5; margin-top:4px; overflow-wrap:anywhere; }
+    .rich-content img { max-width:100%; height:auto; }
+    .formatbar { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:7px; }
+    .formatbar button { padding:4px 8px; min-width:30px; }
+    .file-actions { display:flex; gap:6px; margin-top:7px; flex-wrap:wrap; }
+    .file-link { display:inline-block; border:1px solid var(--line); color:var(--cyan); background:var(--btn-bg); padding:6px 8px; text-decoration:none; border-radius: var(--ui-radius); }
+    .file-link:hover { background:var(--cyan); color:var(--bg); }
+
+    .compose-row textarea:focus, input:focus, select:focus { box-shadow: inset 0 0 0 1px var(--green); }
+    .hint { color: var(--dim); font-size: 10px; margin-top: 5px; }
     .rightbar { border-left: 1px solid var(--line); background: var(--panel); display: grid; grid-template-rows: auto 1fr; }
     .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; padding: 10px; border-bottom: 1px solid var(--line); }
     .stat { border: 1px solid var(--line); padding: 9px; background: var(--panel-2); border-radius: var(--ui-radius); }
@@ -115,18 +123,68 @@
     .card-id { color: var(--cyan); font-size: 11px; }
     .card-title { color: var(--green-soft); margin: 5px 0; font-weight: bold; }
     .card-meta { color: var(--dim); font-size: 11px; line-height: 1.55; }
-    
+    .tag { border: 1px solid currentColor; padding: 2px 5px; font-size: 9px; white-space: nowrap; border-radius: var(--ui-radius); }
+    .high { color: var(--red); } .medium { color: var(--amber); } .low { color: var(--green); }
     .footer { border-top: 1px solid var(--line); background: var(--bg); color: var(--dim); padding: 5px 11px; display: flex; justify-content: space-between; font-size: 10px; }
     .modal-wrap { display: none; position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,.82); align-items:center; justify-content:center; padding: 16px; }
     .modal-wrap.show { display: flex; }
-    .modal { width: min(620px, 100%); max-height: 90vh; overflow:auto; border: 1px solid var(--green); background: var(--panel); box-shadow: 0 0 35px rgba(0,0,0,0.5); border-radius: var(--ui-radius); }
+    .modal { width: min(620px, 100%); max-height: 90vh; overflow:auto; border: 1px solid var(--green); background: var(--panel); box-shadow: 0 0 35px rgba(0,0,0,.5); border-radius: var(--ui-radius); }
     .modal-head { border-bottom: 1px solid var(--line); padding: 12px 15px; display:flex; justify-content:space-between; background: var(--panel-2); }
     .modal-body { padding: 14px; }
+    label { display:block; color: var(--dim); font-size: 11px; margin: 10px 0 5px; font-weight: bold; }
     input, select, .modal textarea { width:100%; border:1px solid var(--line); background:var(--btn-bg); color:var(--text-main); padding:9px; outline:none; border-radius: var(--ui-radius); }
+    .modal textarea { min-height: 90px; resize: vertical; }
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:14px; }
+    .table-wrap { overflow:auto; border:1px solid var(--line); margin-top:10px; border-radius: var(--ui-radius); }
+    table { border-collapse:collapse; width:100%; color:var(--text-main); min-width:420px; }
+    th, td { border:1px solid var(--line); padding:8px; text-align:left; }
+    th { background:var(--panel-2); color:var(--green); }
+    .search-box { width:150px; padding:6px 8px; }
+    .empty { color:var(--dim); text-align:center; padding:28px 5px; }
+
+    .burger { width:39px; height:34px; padding:6px; display:grid; align-content:center; gap:4px; }
+    .burger span { display:block; height:2px; background:currentColor; width:100%; }
+    .settings-shade { display:none; position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.62); }
+    .settings-shade.show { display:block; }
+    .settings-drawer { position:absolute; top:0; right:0; height:100%; width:min(430px,94vw); background:var(--bg); border-left:1px solid var(--green); box-shadow:-12px 0 35px rgba(0,0,0,0.5); display:grid; grid-template-rows:52px 1fr; }
+    .settings-head { padding:0 14px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; background: var(--panel); }
+    .settings-body { overflow-y:auto; padding:13px; }
+    .settings-section { border:1px solid var(--line); margin-bottom:12px; background:var(--panel-2); border-radius: var(--ui-radius); }
+    .settings-section-title { padding:10px 12px; border-bottom:1px solid var(--line); color:var(--green-soft); font-weight:bold; }
+    .settings-section-body { padding:12px; }
+    .settings-row { display:grid; grid-template-columns:1fr auto; align-items:center; gap:10px; padding:9px 0; border-bottom:1px dotted var(--line); }
+    .settings-row:last-child { border-bottom:0; }
+    .settings-note { color:var(--dim); font-size:10px; margin-top:3px; }
+    .channel-admin { display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:7px; padding:7px 0; border-bottom:1px dotted var(--line); }
+    .channel-admin:last-child { border-bottom:0; }
+    .danger-btn { border-color:var(--red) !important; color:var(--red) !important; }
+    .danger-btn:hover { background:var(--red) !important; color:#fff !important; }
+    .toggle { width:42px; height:22px; border:1px solid var(--line); background:var(--btn-bg); position:relative; cursor:pointer; border-radius: var(--ui-radius); }
+    .toggle:after { content:""; position:absolute; width:14px; height:14px; top:3px; left:4px; background:var(--dim); transition:.15s; border-radius: var(--ui-radius); }
+    .toggle.on:after { left:22px; background:var(--green); box-shadow:0 0 7px var(--green); }
     
-    /* ----------------------------------------------------
-       INTERACTIVE THEME STUDIO SYSTEM
-       ---------------------------------------------------- */
+    body.compact .message { padding:4px 8px; margin-bottom:2px; }
+    body.compact .avatar { width:28px; height:28px; }
+    body.no-scanlines:after { display:none; }
+
+    .message-actions { display:flex; gap:5px; margin-top:6px; opacity:0; transition:.15s; }
+    .message:hover .message-actions { opacity:1; }
+    .message-delete { padding:3px 7px; font-size:9px; border:1px solid var(--red); color:var(--red); background:transparent; border-radius: var(--ui-radius); }
+    .recycled-message { border:1px solid var(--line); background:var(--btn-bg); padding:9px; margin-bottom:8px; border-radius: var(--ui-radius); }
+    .history-filter { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px; }
+    .history-line { border-left:2px solid var(--line); padding:7px 9px; margin:0 0 8px 4px; color:var(--green-soft); }
+    .history-line small { display:block; color:var(--dim); margin-top:3px; }
+    .deleted-file { opacity:.72; }
+    .deleted-file .card-id { color:var(--amber); }
+    
+    .editor-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .code-editor { width:100%; min-height:170px!important; resize:vertical; tab-size:2; white-space:pre; overflow:auto; color:var(--text-main)!important; background:var(--btn-bg)!important; }
+    .preview-frame { width:100%; height:230px; border:1px solid var(--line); background:white; margin-top:10px; border-radius: var(--ui-radius); }
+    .dev-warning { border:1px solid var(--amber); color:var(--amber); padding:8px; margin-bottom:10px; line-height:1.45; border-radius: var(--ui-radius); }
+    .custom-module { border:1px solid var(--line); background:var(--panel-2); padding:10px; margin:10px; border-radius: var(--ui-radius); }
+
+    /* INTEGRATED PREMIUM THEMES */
     /* 1. Terminal (Default) */
     body[data-theme="terminal"] {}
 
@@ -169,123 +227,229 @@
     body[data-theme="cyberpunk"] .message { border-left: 3px solid transparent; }
     body[data-theme="cyberpunk"] .message:hover { border-left: 3px solid var(--cyan); background: #1a1a1a; transform: translateX(5px); }
 
-    /* Custom Theme Dynamic Injector */
-    #custom-theme-style {}
-
-    .theme-launch{width:100%;padding:15px;text-align:left;border:1px solid var(--green);background:var(--panel-2);color:var(--green-soft); cursor:pointer;}
+    /* Theme Studio CSS */
+    .theme-launch{width:100%;padding:15px;text-align:left;border:1px solid var(--line);background:var(--panel-2);color:var(--green-soft); border-radius: var(--ui-radius);}
     .theme-page{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);color:var(--green);overflow:auto}
     .theme-page.show{display:block}
     .theme-head{position:sticky;top:0;z-index:4;display:flex;justify-content:space-between;align-items:center;padding:13px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
     .theme-body{max-width:1200px;margin:auto;padding:18px}
     .theme-layout{display:grid;grid-template-columns:1fr 330px;gap:16px}
-    .theme-panel{border:1px solid var(--line);background:var(--panel);padding:15px;margin-bottom:14px; border-radius:var(--ui-radius)}
-    .theme-grid,.bg-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:10px}
+    .theme-panel{border:1px solid var(--line);background:var(--panel);padding:15px;margin-bottom:14px; border-radius:var(--ui-radius);}
+    .theme-grid,.bg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
     .theme-card{padding:0;border:2px solid transparent;background:var(--panel-2);color:var(--text-main);text-align:left;border-radius:var(--ui-radius);overflow:hidden; cursor:pointer;}
     .theme-card.active,.bg-card.active{border-color:var(--green); box-shadow: 0 0 10px var(--green);}
-    .theme-thumb{height:80px;padding:9px;background:linear-gradient(135deg,var(--a),var(--b),var(--c))}
-    .theme-label{padding:9px; font-size:12px; font-weight:bold;}
+    .theme-thumb{height:105px;padding:9px;background:linear-gradient(135deg,var(--a),var(--b),var(--c))}
+    .mini-top{height:11px;background:rgba(255,255,255,.3);border-radius:4px}
+    .mini-body{display:grid;grid-template-columns:25% 1fr;gap:6px;margin-top:7px;height:70px}
+    .mini-body span{display:block;border-radius:5px;background:rgba(0,0,0,.25);box-shadow:inset 1px 1px rgba(255,255,255,.2)}
+    .theme-label{padding:9px}
+    .bg-card{height:58px;border:2px solid transparent;border-radius:var(--ui-radius);color:white;text-shadow:0 1px 3px black;font-size:10px}
+    .control-row{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center;padding:9px 0;border-bottom:1px dotted var(--line)}
+    .color-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .color-pair input{height:43px;padding:3px}
+    .range-line{display:grid;grid-template-columns:1fr 48px;gap:8px;align-items:center}
     
-    .settings-drawer { position:absolute; top:0; right:0; height:100%; width:min(430px,94vw); background:var(--bg); border-left:1px solid var(--green); box-shadow:-12px 0 35px rgba(0,0,0,0.5); display:grid; grid-template-rows:52px 1fr; }
-    .settings-shade { display:none; position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.62); }
-    .settings-shade.show { display:block; }
-    .settings-head { padding:0 14px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; background:var(--panel);}
-    .settings-body { overflow-y:auto; padding:13px; }
-    .settings-section { border:1px solid var(--line); margin-bottom:12px; background:var(--panel-2); border-radius:var(--ui-radius); }
-    .settings-section-title { padding:10px 12px; border-bottom:1px solid var(--line); color:var(--green-soft); font-weight:bold; }
-    .settings-section-body { padding:12px; }
+    body.custom-accent{--green:var(--custom-accent)!important;--cyan:var(--custom-accent)!important}
+    body.ui3d .card,body.ui3d .stat,body.ui3d .message,body.ui3d .settings-section{border-radius:14px;box-shadow:inset 1px 1px rgba(255,255,255,.13),0 10px 25px rgba(0,0,0,.25)}
+    body.ui3d .cmd-btn,body.ui3d .icon-btn{border-radius:9px;box-shadow:inset 1px 1px rgba(255,255,255,.15),0 5px 12px rgba(0,0,0,.22)}
 
-    /* Remaining Utilities */
-    .danger-btn { border-color:var(--red) !important; color:var(--red) !important; }
-    .danger-btn:hover { background:var(--red) !important; color:#fff !important; }
-    .search-box { width:150px; padding:6px 8px; }
-    .burger { width:39px; height:34px; padding:6px; display:grid; align-content:center; gap:4px; }
-    .burger span { display:block; height:2px; background:currentColor; width:100%; }
-    .file-actions { display:flex; gap:6px; margin-top:7px; flex-wrap:wrap; }
-    .file-link { display:inline-block; border:1px solid var(--line); color:var(--cyan); background:var(--btn-bg); padding:4px 8px; font-size:11px; text-decoration:none; border-radius:var(--ui-radius); transition:0.2s;}
-    .file-link:hover { background:var(--cyan); color:#000; }
-    .table-wrap { overflow:auto; border:1px solid var(--line); margin-top:10px; border-radius:var(--ui-radius); }
-    table { border-collapse:collapse; width:100%; color:var(--text-main); min-width:420px; }
-    th, td { border:1px solid var(--line); padding:8px; text-align:left; }
-    th { background:var(--panel-2); color:var(--green); }
-    label { display:block; color: var(--dim); font-size: 11px; margin: 10px 0 5px; font-weight:bold;}
+    /* Responsive */
+    @media(max-width:900px){.theme-layout{grid-template-columns:1fr}.theme-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:520px){.theme-body{padding:8px}.theme-grid,.bg-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:700px){ .editor-grid{grid-template-columns:1fr} }
+
+    /* Calendar */
+    .calendar-shell { padding:12px; min-height:0; overflow:auto; }
+    .calendar-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+    .calendar-title { color:var(--green-soft); font-size:18px; font-weight:bold; }
+    .calendar-grid { display:grid; grid-template-columns:repeat(7,minmax(105px,1fr)); border-top:1px solid var(--line); border-left:1px solid var(--line); min-width:780px; border-radius: var(--ui-radius); overflow: hidden; }
+    .calendar-weekday { padding:8px; color:var(--green); background:var(--panel-2); border-right:1px solid var(--line); border-bottom:1px solid var(--line); text-align:center; font-weight:bold; }
+    .calendar-day { min-height:112px; padding:6px; border-right:1px solid var(--line); border-bottom:1px solid var(--line); background:var(--btn-bg); }
+    .calendar-day.other { opacity:.38; }
+    .calendar-day.today { box-shadow:inset 0 0 0 2px var(--green); }
+    .day-number { color:var(--dim); font-size:11px; margin-bottom:5px; }
+    .calendar-event { display:block; width:100%; border:1px solid var(--line); background:var(--panel-2); color:var(--text-main); padding:4px; margin:3px 0; text-align:left; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-radius: var(--ui-radius); }
+    .calendar-event.high { border-color:var(--red); color:#ff9a9a; }
+    .calendar-event.medium { border-color:var(--amber); color:#ffe68c; }
+    .calendar-event.low { border-color:var(--green); }
+    .calendar-export-note { border:1px dashed var(--line); color:var(--dim); padding:8px; margin-top:10px; font-size:10px; line-height:1.5; border-radius: var(--ui-radius); }
+    .cloud-state { font-size:10px; color:var(--dim); }
+    .cloud-state.online { color:var(--green); }
+    .cloud-state.offline { color:var(--red); }
+    .bin-actions { display:flex; gap:6px; flex-wrap:wrap; margin:7px 0 12px; }
+
+    @media(max-width:700px){
+      html,body{height:100%;overflow:hidden;font-size:13px}
+      .app{height:100dvh;min-height:0;grid-template-rows:46px 1fr 24px}
+      .main{min-height:0;display:block}.workspace{height:100%;min-height:0;grid-template-rows:52px 1fr auto}
+      .sidebar{display:none}.rightbar{display:none}.topbar{padding:0 7px}.brand{font-size:11px;letter-spacing:0;gap:5px}.brand .prompt{padding:2px 4px}.brand span:last-child{display:none}
+      .top-actions{gap:5px}.search-box{display:none}.user-label{display:none}.cloud-state{font-size:8px}.burger{width:34px;height:31px}
+      .chat-head{padding:0 8px}.chat-title{font-size:15px}.chat-sub{font-size:9px;max-width:210px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.chat-head .icon-btn{padding:6px;font-size:9px}
+      .messages{padding:7px}.message{grid-template-columns:29px 1fr;gap:7px;padding:6px 3px}.avatar{width:27px;height:27px;font-size:10px}.text,.rich-content{font-size:12px}.message-actions{opacity:1}
+      .composer{padding:6px}.formatbar{overflow-x:auto;flex-wrap:nowrap;padding-bottom:3px}.formatbar button{white-space:nowrap;padding:5px 7px}.compose-row{grid-template-columns:auto minmax(0,1fr) auto;gap:4px}.rich-editor{min-height:42px;max-height:92px;padding:8px;font-size:12px}.compose-row .cmd-btn{padding:8px 7px}.hint{font-size:8px}
+      .footer{font-size:8px;padding:4px 6px}.footer span:first-child{display:none}
+      .modal-wrap{padding:4px;align-items:stretch}.modal{width:100%!important;max-height:none!important;height:100%;border-left:0;border-right:0}.modal-body{padding:9px}.modal-head{padding:9px}.form-grid,.editor-grid{grid-template-columns:1fr}.modal-actions{flex-wrap:wrap}.modal-actions .cmd-btn{flex:1;min-width:105px}
+      .settings-drawer{width:100vw}.settings-body{padding:7px}.settings-section-body{padding:8px}.channel-admin{grid-template-columns:1fr auto auto}.channel-admin .icon-btn{padding:5px;font-size:9px}
+      .calendar-shell{padding:6px;overflow:auto}.calendar-toolbar{position:sticky;top:0;z-index:2;background:var(--panel);padding:4px}.calendar-toolbar>div{display:flex;gap:4px;flex-wrap:wrap}.calendar-toolbar .cmd-btn{padding:6px;font-size:9px}.calendar-title{width:100%;order:-1;text-align:center;font-size:15px}.calendar-grid{grid-template-columns:repeat(7,minmax(92px,1fr));min-width:644px}.calendar-day{min-height:92px;padding:3px}.calendar-event{font-size:8px;padding:3px}
+      .table-wrap{max-width:calc(100vw - 55px)}table{min-width:520px}.tab-content{padding:7px}.card{padding:8px}
+    }
+    @media(min-width:701px) and (max-width:1050px){.main{grid-template-columns:210px 1fr}.rightbar{display:none}}
+    @media(max-width: 1050px){ .main{grid-template-columns:210px 1fr}.rightbar{display:none} }
   </style>
 </head>
 <body>
-
-<!-- Dynamic Style Injector for Imported Themes -->
-<style id="custom-theme-style"></style>
-
 <div class="app">
   <header class="topbar">
-    <div class="brand"><span class="prompt">C:\&gt;</span> AUTOFAB_TEAM_TERMINAL</div>
+    <div class="brand"><span class="prompt">C:\&gt;</span> AUTOFAB_TEAM_TERMINAL <span style="color:var(--dim)">v1.0</span></div>
     <div class="top-actions">
-      <button class="icon-btn burger" onclick="openSettings()"><span></span><span></span><span></span></button>
+      <button class="icon-btn burger" onclick="openSettings()" title="Open settings" aria-label="Open settings"><span></span><span></span><span></span></button>
       <input id="search" class="search-box" placeholder="SEARCH MESSAGES...">
-      <span id="cloudState" class="cloud-state">DB: LOCAL</span><span class="status-dot"></span>
+      <span id="cloudState" class="cloud-state">DB: CHECKING</span><span class="status-dot"></span><span class="user-label">ADMIN-HR [ONLINE]</span>
     </div>
   </header>
 
   <main class="main">
     <aside class="sidebar">
       <div class="side-scroll">
-        <div class="section-head"><span>ACTIVITY CHANNELS</span></div>
+        <div class="section-head"><span>ACTIVITY CHANNELS</span><span>+</span></div>
         <div id="channelList"></div>
+        <div class="section-head" style="margin-top:18px"><span>DIRECT LINKS</span></div>
+        <button class="channel"><span>&gt; @Management</span><span class="badge">2</span></button>
+        <button class="channel"><span>&gt; @Accounts</span><span class="badge">0</span></button>
+        <button class="channel"><span>&gt; @IT-Support</span><span class="badge">1</span></button>
       </div>
       <div class="quick">
+        <div class="section-head"><span>QUICK COMMANDS</span></div>
         <button class="cmd-btn" onclick="openModal('task')">/task create</button>
+        <button class="cmd-btn" onclick="openModal('ticket')">/ticket new</button>
         <button class="cmd-btn" onclick="openModal('table')">/table paste</button>
+        <button class="cmd-btn" onclick="openCalendar()">/calendar open</button>
       </div>
     </aside>
 
     <section class="workspace">
       <div class="chat-head">
-        <div><div id="channelTitle" class="chat-title"># HR</div><div id="channelDesc" class="chat-sub">GENERAL</div></div>
-        <button class="icon-btn" onclick="clearChannel()">CLEAR</button>
+        <div><div id="channelTitle" class="chat-title"># HR</div><div id="channelDesc" class="chat-sub">EMPLOYEE OPERATIONS AND ANNOUNCEMENTS</div></div>
+        <button class="icon-btn" onclick="clearChannel()">CLEAR VIEW</button>
       </div>
       <div id="messages" class="messages"></div>
       <div class="composer">
+        <div id="filePreview" class="attachment-preview"></div>
+        <div class="formatbar">
+          <button class="icon-btn" onclick="formatText('bold')"><b>B</b></button>
+          <button class="icon-btn" onclick="formatText('italic')"><i>I</i></button>
+          <button class="icon-btn" onclick="formatText('underline')"><u>U</u></button>
+          <button class="icon-btn" onclick="formatText('insertUnorderedList')">LIST</button>
+          <button class="icon-btn" onclick="formatText('removeFormat')">CLEAR FORMAT</button>
+          <button class="icon-btn" onclick="openModal('table')">PASTE TABLE</button>
+        </div>
         <div class="compose-row">
-          <button class="icon-btn" title="Attach file" onclick="document.getElementById('fileInput').click()">[+]</button>
+          <button class="icon-btn" title="Attach one or more files" onclick="document.getElementById('fileInput').click()">[+]</button>
           <input id="fileInput" type="file" hidden multiple onchange="selectFile(this)">
-          <div id="messageInput" class="rich-editor" contenteditable="true" data-placeholder="TYPE MESSAGE HERE..."></div>
+          <div id="messageInput" class="rich-editor" contenteditable="true" data-placeholder="> TYPE OR PASTE FROM WORD / EXCEL..." onkeydown="composerKey(event)" onpaste="handleRichPaste(event)"></div>
           <button class="cmd-btn" onclick="sendMessage()">SEND &gt;</button>
         </div>
+        <div class="hint">CTRL+ENTER TO SEND | PASTE WORD/EXCEL WITH FORMATTING | COMMANDS: /task /ticket /table</div>
       </div>
     </section>
 
     <aside class="rightbar">
       <div class="stats">
-        <div class="stat"><strong id="msgCount">0</strong><span>MESSAGES</span></div>
-        <div class="stat"><strong id="taskCount">0</strong><span>TASKS</span></div>
+        <div class="stat"><strong id="taskCount">03</strong><span>OPEN TASKS</span></div>
+        <div class="stat"><strong id="ticketCount">02</strong><span>OPEN TICKETS</span></div>
+        <div class="stat"><strong>08</strong><span>ONLINE USERS</span></div>
+        <div class="stat"><strong id="messageCount">00</strong><span>MESSAGES</span></div>
       </div>
       <div class="tabs">
         <div class="tab-buttons">
           <button class="tab-btn active" onclick="showTab('tasks',this)">TASKS</button>
+          <button class="tab-btn" onclick="showTab('tickets',this)">TICKETS</button>
           <button class="tab-btn" onclick="showTab('files',this)">FILES</button>
+          <button class="tab-btn" onclick="showTab('history',this)">HISTORY</button>
         </div>
         <div id="tabContent" class="tab-content"></div>
       </div>
     </aside>
   </main>
+  <div id="customModuleMount"></div>
+
+  <footer class="footer"><span>SYS: CONNECTED | STORAGE: SERVER + MONGODB | ENCRYPTION: DEMO MODE</span><span id="clock"></span></footer>
 </div>
 
-<!-- SETTINGS DRAWER -->
+<!-- CALENDAR MODAL -->
+<div id="calendarWrap" class="modal-wrap" onclick="calendarBackdrop(event)">
+  <div class="modal" style="width:min(1180px,98vw);height:min(850px,96vh);display:grid;grid-template-rows:52px 1fr">
+    <div class="modal-head"><strong>TEAM CALENDAR</strong><button class="icon-btn" onclick="closeCalendar()">[X]</button></div>
+    <div class="calendar-shell">
+      <div class="calendar-toolbar">
+        <div><button class="cmd-btn" onclick="changeMonth(-1)">&lt; PREV</button> <button class="cmd-btn" onclick="goToday()">TODAY</button> <button class="cmd-btn" onclick="changeMonth(1)">NEXT &gt;</button></div>
+        <div id="calendarTitle" class="calendar-title"></div>
+        <div><button class="cmd-btn" onclick="exportAllCalendarICS()">EXPORT ALL (.ICS)</button> <button class="cmd-btn" onclick="openEventEditor()">+ NEW EVENT</button></div>
+      </div>
+      <div id="calendarGrid" class="calendar-grid"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS PANEL -->
 <div id="settingsShade" class="settings-shade" onclick="settingsBackdrop(event)">
   <aside class="settings-drawer">
-    <div class="settings-head"><strong>[≡] SETTINGS</strong><button class="icon-btn" onclick="closeSettings()">[X]</button></div>
+    <div class="settings-head"><strong>[≡] SETTINGS / CONTROL PANEL</strong><button class="icon-btn" onclick="closeSettings()">[X]</button></div>
     <div class="settings-body">
       <section class="settings-section">
-        <div class="settings-section-title">THEME & APPEARANCE</div>
+        <div class="settings-section-title">ACTIVITY CHANNELS</div>
         <div class="settings-section-body">
-          <button class="theme-launch" onclick="openThemeStudio()"><b>OPEN THEME STUDIO</b><div style="color:var(--dim); font-size:10px; margin-top:3px;">Change aesthetics, layouts, and import JSON themes.</div></button>
+          <div class="form-grid"><div><label>CHANNEL NAME</label><input id="newChannelName" placeholder="E.g. PURCHASE"></div><div><label>DESCRIPTION</label><input id="newChannelDesc" placeholder="Activity details"></div></div>
+          <button class="cmd-btn" style="width:100%;margin:10px 0" onclick="addChannel()">+ ADD ACTIVITY CHANNEL</button>
+          <div id="channelAdminList"></div>
         </div>
       </section>
       <section class="settings-section">
-        <div class="settings-section-title">PROFILE</div>
+        <div class="settings-section-title">THEME & BACKGROUND</div>
         <div class="settings-section-body">
-          <label>DISPLAY NAME</label>
-          <input id="profileName" value="ADMIN-HR" onchange="saveProfile()">
+          <button class="theme-launch" onclick="openThemeStudio()">
+            <b>OPEN THEME STUDIO</b>
+            <div class="settings-note">UI themes, import JSON, 3D effects and messenger backgrounds</div>
+          </button>
         </div>
+      </section>
+      <section class="settings-section">
+        <div class="settings-section-title">PROFILE & DISPLAY</div>
+        <div class="settings-section-body">
+          <label>DISPLAY NAME</label><input id="profileName" value="ADMIN-HR" onchange="saveProfile()">
+          <div class="settings-row"><div>COMPACT MESSAGES<div class="settings-note">Show more messages on screen</div></div><button id="compactToggle" class="toggle" onclick="toggleSetting('compact')"></button></div>
+          <div class="settings-row"><div>CRT SCAN LINES<div class="settings-note">Terminal screen visual effect</div></div><button id="scanToggle" class="toggle on" onclick="toggleSetting('scan')"></button></div>
+          <div class="settings-row"><div>SOUND NOTIFICATIONS<div class="settings-note">Stored as a preference for server version</div></div><button id="soundToggle" class="toggle on" onclick="toggleSetting('sound')"></button></div>
+        </div>
+      </section>
+      <section class="settings-section">
+        <div class="settings-section-title">DATA & MAINTENANCE</div>
+        <div class="settings-section-body">
+          <button class="cmd-btn" style="width:100%;margin-bottom:7px" onclick="exportData()">EXPORT BACKUP (.JSON)</button>
+          <button class="cmd-btn" style="width:100%;margin-bottom:7px" onclick="document.getElementById('importData').click()">IMPORT BACKUP</button>
+          <input id="importData" type="file" accept=".json,application/json" hidden onchange="importBackup(this)">
+          <button class="cmd-btn danger-btn" style="width:100%" onclick="resetApp()">RESET ALL LOCAL DATA</button>
+          <div class="settings-note" style="margin-top:9px">Attachments are uploaded to this hosting PC and can be opened by other computers on the network.</div>
+        </div>
+      </section>
+      <section class="settings-section">
+        <div class="settings-section-title">DEVELOPER / HTML FEATURE EDITOR</div>
+        <div class="settings-section-body">
+          <div class="settings-note" style="margin-bottom:9px">Create an interface module using HTML, CSS and JavaScript, test it, then apply it to this app. Export a modified HTML file to keep the feature permanently.</div>
+          <button class="cmd-btn" style="width:100%" onclick="openFeatureEditor()">OPEN HTML FEATURE EDITOR</button>
+        </div>
+      </section>
+      <section class="settings-section">
+        <div class="settings-section-title">SERVER / MONGODB SYNC</div>
+        <div class="settings-section-body">
+          <label>BACKEND API URL</label><input id="apiUrlInput" placeholder="Same server: leave blank" onchange="saveApiSettings()">
+          <div class="settings-note">For production, keep the HTML and backend on the same domain and leave this blank.</div>
+          <div class="file-actions" style="margin-top:10px"><button class="cmd-btn" onclick="testServer()">TEST CONNECTION</button><button class="cmd-btn" onclick="pushState()">SYNC NOW</button><button class="cmd-btn" onclick="loadServerState()">LOAD SERVER DATA</button></div>
+        </div>
+      </section>
+      <section class="settings-section">
+        <div class="settings-section-title">ABOUT</div>
+        <div class="settings-section-body card-meta">AUTOFAB TEAM TERMINAL v1.5<br>MODE: STANDALONE HTML<br>STORAGE: BROWSER LOCAL STORAGE</div>
       </section>
     </div>
   </aside>
@@ -293,94 +457,213 @@
 
 <!-- THEME STUDIO -->
 <div id="themeStudio" class="theme-page" aria-hidden="true">
-  <div class="theme-head"><b>✦ THEME STUDIO</b><button class="icon-btn" onclick="closeThemeStudio()">[X] CLOSE</button></div>
+  <div class="theme-head"><b>✦ THEME & MESSENGER STUDIO</b><button class="icon-btn" onclick="closeThemeStudio()">[X] CLOSE</button></div>
   <div class="theme-body">
     <div class="theme-layout">
       <main>
         <section class="theme-panel">
-          <div class="section-head"><span>INTERACTIVE THEMES</span></div>
+          <div class="section-head"><span>PREMIUM UI THEMES</span><span>LIVE PREVIEW</span></div>
           <div id="uiThemeGrid" class="theme-grid"></div>
         </section>
+        
         <section class="theme-panel">
-          <div class="section-head"><span>CUSTOM THEME DATA</span></div>
-          <div style="display:flex; gap:10px; margin-top:10px;">
-            <button class="cmd-btn" style="flex:1" onclick="document.getElementById('importThemeInput').click()">📥 IMPORT THEME (.JSON)</button>
-            <button class="cmd-btn" style="flex:1" onclick="exportCurrentTheme()">📤 EXPORT CURRENT</button>
-            <input type="file" id="importThemeInput" accept=".json" hidden onchange="importThemeFile(this)">
+          <div class="section-head"><span>MESSENGER BACKGROUND PRESETS</span></div>
+          <div id="msgBgGrid" class="bg-grid"></div>
+          <div class="color-pair">
+            <div><label>CUSTOM COLOR 1</label><input id="bgColor1" type="color" onchange="customMessengerBg()"></div>
+            <div><label>CUSTOM COLOR 2</label><input id="bgColor2" type="color" onchange="customMessengerBg()"></div>
           </div>
-          <div style="color:var(--dim); font-size:11px; margin-top:10px;">Imported themes override CSS variables globally. To reset, select a built-in theme above.</div>
+          <label>GRADIENT DIRECTION</label>
+          <select id="bgDirection" onchange="customMessengerBg()">
+            <option value="135deg">DIAGONAL</option>
+            <option value="90deg">HORIZONTAL</option>
+            <option value="180deg">VERTICAL</option>
+            <option value="45deg">REVERSE DIAGONAL</option>
+          </select>
+          <label>PATTERN</label>
+          <select id="bgPattern" onchange="updateStudioControls()">
+            <option value="none">NONE</option>
+            <option value="dots">DOTS</option>
+            <option value="grid">GRID</option>
+            <option value="diagonal">DIAGONAL LINES</option>
+          </select>
+          <label>BACKGROUND STRENGTH</label>
+          <div class="range-line"><input id="bgStrength" type="range" min="20" max="100" oninput="updateStudioControls()"><span id="bgStrengthValue"></span></div>
+          <label>MESSAGE CARD OPACITY</label>
+          <div class="range-line"><input id="cardStrength" type="range" min="5" max="95" oninput="updateStudioControls()"><span id="cardStrengthValue"></span></div>
+          <label>GLASS BLUR</label>
+          <div class="range-line"><input id="cardBlur" type="range" min="0" max="16" oninput="updateStudioControls()"><span id="cardBlurValue"></span></div>
         </section>
       </main>
+      <aside>
+        <section class="theme-panel">
+          <div class="section-head"><span>IMPORT / EXPORT</span></div>
+          <div style="display:flex; gap:10px; flex-direction:column; margin-top:10px;">
+            <button class="cmd-btn" onclick="document.getElementById('importThemeInput').click()">📥 IMPORT THEME (.JSON)</button>
+            <button class="cmd-btn" onclick="exportCurrentTheme()">📤 EXPORT CURRENT TEMPLATE</button>
+            <input type="file" id="importThemeInput" accept=".json" hidden onchange="importThemeFile(this)">
+            <div class="settings-note" style="margin-top:5px;">Imported themes override built-in UI styles globally. To reset, select a Premium theme.</div>
+          </div>
+        </section>
+        <section class="theme-panel">
+          <div class="section-head"><span>PERSONALIZE UI</span><span>LOCAL</span></div>
+          <label>ACCENT COLOR</label>
+          <input id="accentColor" type="color" onchange="setAccentColor(this.value)" style="height:48px">
+          <div class="control-row"><div>CUSTOM ACCENT<div class="settings-note">Apply chosen accent to UI</div></div><button id="accentSwitch" class="toggle" onclick="toggleLook('accent')"></button></div>
+          <div class="control-row"><div>FULL 3D UI<div class="settings-note">Raised cards and controls</div></div><button id="depthSwitch" class="toggle" onclick="toggleLook('depth')"></button></div>
+          <button class="cmd-btn" style="width:100%;margin-top:12px" onclick="closeThemeStudio()">APPLY & CLOSE</button>
+          <button class="cmd-btn danger-btn" style="width:100%;margin-top:7px" onclick="resetThemeStudio()">RESET ALL APPEARANCE</button>
+        </section>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<div id="modalWrap" class="modal-wrap" onclick="backdropClose(event)">
+  <div class="modal">
+    <div class="modal-head"><strong id="modalTitle">CREATE</strong><button class="icon-btn" onclick="closeModal()">[X]</button></div>
+    <div id="modalBody" class="modal-body"></div>
+  </div>
+</div>
+
+<div id="editorWrap" class="modal-wrap" onclick="editorBackdrop(event)">
+  <div class="modal" style="width:min(1050px,98vw)">
+    <div class="modal-head"><strong>HTML FEATURE EDITOR</strong><button class="icon-btn" onclick="closeFeatureEditor()">[X]</button></div>
+    <div class="modal-body">
+      <div class="dev-warning">CAUTION: JavaScript entered here runs in this local application. Only use code you understand. Use Preview before Apply.</div>
+      <label>FEATURE NAME</label><input id="featureName" value="CUSTOM MODULE" placeholder="Feature name">
+      <div class="editor-grid">
+        <div><label>HTML</label><textarea id="featureHTML" class="code-editor" spellcheck="false" placeholder="<section>My feature</section>"></textarea></div>
+        <div><label>CSS</label><textarea id="featureCSS" class="code-editor" spellcheck="false" placeholder=".my-feature { color: lime; }"></textarea></div>
+      </div>
+      <label>JAVASCRIPT</label><textarea id="featureJS" class="code-editor" spellcheck="false" placeholder="// Optional JavaScript"></textarea>
+      <div class="modal-actions" style="justify-content:flex-start">
+        <button class="cmd-btn" onclick="previewFeature()">PREVIEW</button>
+        <button class="cmd-btn" onclick="applyFeature()">APPLY & SAVE</button>
+        <button class="cmd-btn" onclick="exportCustomizedHTML()">EXPORT MODIFIED HTML</button>
+        <button class="cmd-btn danger-btn" onclick="removeFeature()">REMOVE FEATURE</button>
+      </div>
+      <iframe id="featurePreview" class="preview-frame" sandbox="allow-scripts"></iframe>
+      <div class="settings-note">Applied code is saved in this browser. “Export Modified HTML” downloads another standalone HTML file with the feature embedded.</div>
     </div>
   </div>
 </div>
 
 <script>
-// Base Data Structures
-let channels = JSON.parse(localStorage.getItem('autofab_channels')) || [{id:'hr', name:'HR', desc:'General Activity', unread:0}];
-let messages = JSON.parse(localStorage.getItem('autofab_messages')) || {hr: []};
+let channels = JSON.parse(localStorage.getItem('autofab_channels') || 'null') || [
+  {id:'hr', name:'HR', desc:'EMPLOYEE OPERATIONS AND ANNOUNCEMENTS', unread:3},
+  {id:'recruitment', name:'RECRUITMENT', desc:'CANDIDATES, INTERVIEWS AND JOINING', unread:5},
+  {id:'payroll', name:'PAYROLL', desc:'SALARY PROCESSING AND APPROVALS', unread:1},
+  {id:'factory', name:'FACTORY', desc:'PRODUCTION AND SHOP-FLOOR UPDATES', unread:8},
+  {id:'maintenance', name:'MAINTENANCE', desc:'MACHINES, REPAIRS AND PREVENTIVE WORK', unread:2},
+  {id:'it', name:'IT SUPPORT', desc:'SYSTEMS, ACCESS AND TECHNICAL ISSUES', unread:4},
+  {id:'management', name:'MANAGEMENT', desc:'DECISIONS, REVIEWS AND APPROVALS', unread:0}
+];
+const seedMessages = {
+  hr: [
+    {type:'system', text:'[SYSTEM] Activity channel initialized. 8 members online.'},
+    {author:'ADMIN-HR', time:'09:14', text:'Good morning team. Please complete pending employee document verification before 4:00 PM.'},
+    {author:'PRIYA-HR', time:'09:18', text:'Employee AF-1042 documents verified. Bank proof is still pending.'},
+    {author:'ACCOUNTS', time:'09:23', text:'Noted. Please tag us when the bank proof is received.'},
+    {author:'ADMIN-HR', time:'09:31', text:'@Accounts will do. Also review today’s joining list below.'},
+    {author:'SYSTEM', time:'09:32', text:'TABLE: Joining List', table:[['EMP ID','NAME','DEPARTMENT','DOJ'],['AF-1048','Ravi Kumar','Production','01-09-2026'],['AF-1049','Neha Shah','Quality','01-09-2026']]}
+  ],
+  recruitment:[{type:'system',text:'[SYSTEM] Recruitment activity loaded.'},{author:'PRIYA-HR',time:'10:10',text:'Interview for CNC Operator is scheduled at 2:30 PM.'}],
+  payroll:[{type:'system',text:'[SYSTEM] Payroll activity loaded.'},{author:'ACCOUNTS',time:'10:22',text:'Attendance input is required before salary processing can begin.'}],
+  factory:[{type:'system',text:'[SYSTEM] Factory operations channel loaded.'},{author:'PRODUCTION',time:'08:40',text:'Line 2 target updated to 860 units for today.'}],
+  maintenance:[{type:'system',text:'[SYSTEM] Maintenance channel loaded.'},{author:'MAINT-01',time:'07:55',text:'Compressor preventive maintenance completed.'}],
+  it:[{type:'system',text:'[SYSTEM] IT support channel loaded.'},{author:'IT-ADMIN',time:'09:02',text:'Server backup completed successfully.'}],
+  management:[{type:'system',text:'[SYSTEM] Management channel loaded.'},{author:'DIRECTOR',time:'11:00',text:'Monthly operational review will begin at 3:00 PM.'}]
+};
+let messages = JSON.parse(localStorage.getItem('autofab_messages') || 'null') || seedMessages;
+let tasks = JSON.parse(localStorage.getItem('autofab_tasks') || 'null') || [
+  {id:'TASK-001',title:'Verify new employee documents',assignee:'PRIYA-HR',due:'01-09-2026',priority:'HIGH'},
+  {id:'TASK-002',title:'Prepare August attendance input',assignee:'ADMIN-HR',due:'02-09-2026',priority:'HIGH'},
+  {id:'TASK-003',title:'Issue CNC operator offer letter',assignee:'PRIYA-HR',due:'03-09-2026',priority:'MEDIUM'}
+];
+let tickets = JSON.parse(localStorage.getItem('autofab_tickets') || 'null') || [
+  {id:'TKT-001',title:'Production printer not responding',dept:'PRODUCTION',status:'OPEN'},
+  {id:'TKT-002',title:'Payroll user access required',dept:'HR',status:'IN PROGRESS'}
+];
+let files = JSON.parse(localStorage.getItem('autofab_files') || '[]');
 let activeChannel = 'hr';
-let preferences = JSON.parse(localStorage.getItem('autofab_preferences')) || {name:'ADMIN-HR'};
+let activeTab = 'tasks';
+let selectedAttachments = [];
+let preferences = JSON.parse(localStorage.getItem('autofab_preferences') || 'null') || {name:'ADMIN-HR', compact:false, scan:true, sound:true};
+let fileHistory = JSON.parse(localStorage.getItem('autofab_file_history') || '[]');
+let messageHistory = JSON.parse(localStorage.getItem('autofab_message_history') || '[]');
+let customFeature = JSON.parse(localStorage.getItem('autofab_custom_feature') || 'null') || {name:'',html:'',css:'',js:''};
+let calendarEvents = JSON.parse(localStorage.getItem('autofab_calendar_events') || '[]');
+let calendarDate = new Date();
+let apiUrl = localStorage.getItem('autofab_api_url') || '';
+let syncTimer = null;
+let isApplyingServerState = false;
 
-// Advanced Interactive Themes Data
+/* --- THEME STUDIO DATA & LOGIC --- */
 const uiThemes = [
   {id:'terminal', n:'Terminal Classic', c:['#020702','#0a1c0b','#35ff67']},
   {id:'glass', n:'Dark Glass', c:['#0f172a','#1e293b','#38bdf8']},
   {id:'synthwave', n:'Synthwave 80s', c:['#120422','#240b36','#ff007f']},
   {id:'cyberpunk', n:'Cyberpunk', c:['#0d0d0d','#111111','#fcee0a']}
 ];
+const msgBgs=[{id:'terminal',n:'Terminal',v:'linear-gradient(135deg,#061006,#020702)'},{id:'aurora',n:'Aurora',v:'radial-gradient(circle at 15% 20%,#1bd8a7,transparent 35%),linear-gradient(135deg,#111746,#55246f)'},{id:'sunset',n:'Sunset',v:'linear-gradient(135deg,#32104c,#c74771,#ff9d5c)'},{id:'ocean',n:'Ocean',v:'linear-gradient(145deg,#031828,#075472)'},{id:'sakura',n:'Sakura',v:'linear-gradient(135deg,#42213f,#df7da7)'},{id:'cartoon',n:'Cartoon',v:'linear-gradient(135deg,#1951a3,#6f43ad,#ed568b)'},{id:'midnight',n:'Midnight',v:'linear-gradient(145deg,#040713,#121d45)'},{id:'paper',n:'Soft Paper',v:'linear-gradient(135deg,#f7f0df,#dfeedd)'},{id:'custom',n:'Custom',v:'linear-gradient(135deg,#26365f,#773f75)'}];
 
-// Theme State Management
-let look = JSON.parse(localStorage.getItem('autofab_look')) || { theme: 'terminal', customVars: null, customName: '' };
+let look=JSON.parse(localStorage.getItem('autofab_look')||'null')||{theme:'terminal',accent:'#35ff67',useAccent:false,depth:true,bg:'terminal',c1:'#061006',c2:'#020702',direction:'135deg',pattern:'none',opacity:95,cardOpacity:28,blur:0, customVars: null, customName: ''};
 
-function persistLook() {
-    localStorage.setItem('autofab_look', JSON.stringify(look));
-}
+function persistLook(){localStorage.setItem('autofab_look',JSON.stringify(look));}
+function openThemeStudio(){closeSettings();themeStudio.classList.add('show');themeStudio.setAttribute('aria-hidden','false');renderThemeStudio();}
+function closeThemeStudio(){themeStudio.classList.remove('show');themeStudio.setAttribute('aria-hidden','true');}
 
-function renderThemeStudio() {
-    let gridHTML = uiThemes.map(t => `
-        <button class="theme-card ${look.theme === t.id ? 'active' : ''}" onclick="chooseUITheme('${t.id}')">
-            <div class="theme-thumb" style="--a:${t.c[0]};--b:${t.c[1]};--c:${t.c[2]}"></div>
-            <div class="theme-label">${t.n}</div>
-        </button>`).join('');
-
-    // If a custom theme is loaded, append it to the grid
+function renderThemeStudio(){
+    let gridHTML = uiThemes.map(t=>`<button class="theme-card ${look.theme===t.id?'active':''}" onclick="chooseUITheme('${t.id}')"><div class="theme-thumb" style="--a:${t.c[0]};--b:${t.c[1]};--c:${t.c[2]}"><div class="mini-top"></div><div class="mini-body"><span></span><span></span></div></div><div class="theme-label"><b>${t.n}</b></div></button>`).join('');
+    
     if (look.customVars) {
-        gridHTML += `
-        <button class="theme-card ${look.theme === 'imported' ? 'active' : ''}" onclick="chooseUITheme('imported')" style="border-style:dashed;">
-            <div class="theme-thumb" style="--a:var(--panel);--b:var(--bg);--c:var(--green)"></div>
-            <div class="theme-label">📦 ${look.customName || 'Imported Theme'}</div>
-        </button>`;
+        gridHTML += `<button class="theme-card ${look.theme==='imported'?'active':''}" onclick="chooseUITheme('imported')" style="border-style:dashed;"><div class="theme-thumb" style="--a:var(--panel);--b:var(--bg);--c:var(--green)"><div class="mini-top"></div><div class="mini-body"><span></span><span></span></div></div><div class="theme-label"><b>📦 ${esc(look.customName) || 'Imported Theme'}</b></div></button>`;
     }
     
-    document.getElementById('uiThemeGrid').innerHTML = gridHTML;
-}
-
-function chooseUITheme(id) {
-    look.theme = id;
-    persistLook();
-    applyLook();
-    renderThemeStudio();
-}
-
-function applyLook() {
-    const styleTag = document.getElementById('custom-theme-style');
+    uiThemeGrid.innerHTML = gridHTML;
     
+    msgBgGrid.innerHTML=msgBgs.map(x=>`<button class="bg-card ${look.bg===x.id?'active':''}" style="background:${x.v}" onclick="chooseMsgBg('${x.id}')">${x.n}</button>`).join('');
+    accentColor.value=look.accent;bgColor1.value=look.c1;bgColor2.value=look.c2;bgDirection.value=look.direction;bgPattern.value=look.pattern;bgStrength.value=look.opacity;cardStrength.value=look.cardOpacity;cardBlur.value=look.blur;bgStrengthValue.textContent=look.opacity+'%';cardStrengthValue.textContent=look.cardOpacity+'%';cardBlurValue.textContent=look.blur+'px';accentSwitch.classList.toggle('on',look.useAccent);depthSwitch.classList.toggle('on',look.depth);
+}
+
+function chooseUITheme(id){look.theme=id;persistLook();applyLook();renderThemeStudio();}
+function chooseMsgBg(id){look.bg=id;persistLook();applyLook();renderThemeStudio();}
+function customMessengerBg(){look.bg='custom';look.c1=bgColor1.value;look.c2=bgColor2.value;look.direction=bgDirection.value;persistLook();applyLook();renderThemeStudio();}
+function setAccentColor(v){look.accent=v;look.useAccent=true;persistLook();applyLook();renderThemeStudio();}
+function toggleLook(k){if(k==='accent')look.useAccent=!look.useAccent;if(k==='depth')look.depth=!look.depth;persistLook();applyLook();renderThemeStudio();}
+function updateStudioControls(){look.pattern=bgPattern.value;look.opacity=+bgStrength.value;look.cardOpacity=+cardStrength.value;look.blur=+cardBlur.value;persistLook();applyLook();renderThemeStudio();}
+function patternCSS(){if(look.pattern==='dots')return 'radial-gradient(circle,rgba(255,255,255,.35) 1px,transparent 1.5px)';if(look.pattern==='grid')return 'linear-gradient(rgba(255,255,255,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.14) 1px,transparent 1px)';if(look.pattern==='diagonal')return 'repeating-linear-gradient(135deg,rgba(255,255,255,.13) 0 1px,transparent 1px 13px)';return 'none';}
+
+function applyLook(){
+    const styleTag = document.getElementById('custom-theme-style');
     if (look.theme === 'imported' && look.customVars) {
         document.body.dataset.theme = 'imported';
         let css = 'body[data-theme="imported"] { ';
-        for (const [k, v] of Object.entries(look.customVars)) {
-            css += `${k}: ${v} !important; `;
-        }
+        for (const [k, v] of Object.entries(look.customVars)) css += `${k}: ${v} !important; `;
         css += '}';
         styleTag.textContent = css;
     } else {
         styleTag.textContent = '';
         document.body.dataset.theme = look.theme;
     }
+
+    document.body.style.setProperty('--custom-accent',look.accent);
+    document.body.classList.toggle('custom-accent',look.useAccent);
+    document.body.classList.toggle('ui3d',look.depth);
+    const w=document.querySelector('.workspace');
+    const p=msgBgs.find(x=>x.id===look.bg);
+    w.style.setProperty('--msg-bg',look.bg==='custom'?`linear-gradient(${look.direction},${look.c1},${look.c2})`:(p?.v||msgBgs[0].v));
+    w.style.setProperty('--msg-opacity',look.opacity/100);
+    w.style.setProperty('--card-opacity',look.cardOpacity/100);
+    w.style.setProperty('--card-blur',look.blur+'px');
+    w.style.setProperty('--msg-pattern',patternCSS());
+    w.style.setProperty('--pattern-opacity',look.pattern==='none'?0:.4);
 }
 
-// Import / Export Engine
+function resetThemeStudio(){look={theme:'terminal',accent:'#35ff67',useAccent:false,depth:true,bg:'terminal',c1:'#061006',c2:'#020702',direction:'135deg',pattern:'none',opacity:95,cardOpacity:28,blur:0, customVars: null, customName: ''};persistLook();applyLook();renderThemeStudio();}
+
+// Import / Export JSON Logic
 function importThemeFile(input) {
     const file = input.files[0];
     if (!file) return;
@@ -389,20 +672,14 @@ function importThemeFile(input) {
         try {
             const theme = JSON.parse(reader.result);
             if (!theme.variables) throw Error('Missing "variables" object');
-            
             look.theme = 'imported';
             look.customVars = theme.variables;
             look.customName = theme.name || 'Custom Theme';
-            persistLook();
-            applyLook();
-            renderThemeStudio();
+            persistLook(); applyLook(); renderThemeStudio();
             alert('Theme imported successfully!');
-        } catch (e) {
-            alert('Invalid theme file format. Ensure it is a valid JSON with a "variables" block.');
-        }
+        } catch (e) { alert('Invalid theme file format. Ensure it is a valid JSON with a "variables" block.'); }
     };
-    reader.readAsText(file);
-    input.value = '';
+    reader.readAsText(file); input.value = '';
 }
 
 function exportCurrentTheme() {
@@ -410,90 +687,405 @@ function exportCurrentTheme() {
     if (look.theme === 'imported' && look.customVars) {
         varsToExport = look.customVars;
     } else {
-        // Fallback: Export template based on Terminal
         varsToExport = {
             "--bg": "#020702", "--panel": "#061006", "--panel-2": "#091709",
             "--green": "#35ff67", "--green-soft": "#91ffa7", "--dim": "#4f8b59",
             "--line": "#1d6e2e", "--cyan": "#4dfcff", "--text-main": "#b6ffc5",
-            "--btn-bg": "#041005", "--ui-font": "monospace", "--ui-radius": "0px"
+            "--btn-bg": "#041005", "--ui-font": "Consolas, \"Courier New\", monospace", 
+            "--ui-radius": "0px"
         };
         alert('Exporting a template based on the default terminal theme. Edit this file to create your own!');
     }
-    
-    const data = {
-        name: look.theme === 'imported' ? look.customName : "My Custom Theme",
-        variables: varsToExport
-    };
-    
+    const data = { name: look.theme === 'imported' ? look.customName : "My Custom Theme", variables: varsToExport };
     const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = (data.name.replace(/\s+/g, '_').toLowerCase()) + '.json';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
+/* ------------------------------- */
 
-// Standard UI Logic
-function openSettings() { document.getElementById('settingsShade').classList.add('show'); document.getElementById('profileName').value = preferences.name; }
-function closeSettings() { document.getElementById('settingsShade').classList.remove('show'); }
-function settingsBackdrop(e) { if(e.target === document.getElementById('settingsShade')) closeSettings(); }
-function openThemeStudio() { closeSettings(); document.getElementById('themeStudio').classList.add('show'); renderThemeStudio(); }
-function closeThemeStudio() { document.getElementById('themeStudio').classList.remove('show'); }
-function saveProfile() { preferences.name = document.getElementById('profileName').value || 'USER'; localStorage.setItem('autofab_preferences', JSON.stringify(preferences)); }
+function save(){
+  localStorage.setItem('autofab_messages',JSON.stringify(messages));
+  localStorage.setItem('autofab_tasks',JSON.stringify(tasks));
+  localStorage.setItem('autofab_tickets',JSON.stringify(tickets));
+  localStorage.setItem('autofab_files',JSON.stringify(files));
+  localStorage.setItem('autofab_channels',JSON.stringify(channels));
+  localStorage.setItem('autofab_preferences',JSON.stringify(preferences));
+  localStorage.setItem('autofab_file_history',JSON.stringify(fileHistory));
+  localStorage.setItem('autofab_message_history',JSON.stringify(messageHistory));
+  localStorage.setItem('autofab_custom_feature',JSON.stringify(customFeature));
+  localStorage.setItem('autofab_calendar_events',JSON.stringify(calendarEvents));
+  if(!isApplyingServerState){ clearTimeout(syncTimer); syncTimer=setTimeout(pushState,700); }
+}
 function esc(s=''){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function renderChannels(){
+  channelList.innerHTML = channels.map(c=>`<button class="channel ${c.id===activeChannel?'active':''}" onclick="setChannel('${c.id}')"><span>&gt; # ${c.name}</span><span class="badge">${c.unread}</span></button>`).join('');
+}
+function setChannel(id){ activeChannel=id; const c=channels.find(x=>x.id===id); c.unread=0; channelTitle.textContent='# '+c.name; channelDesc.textContent=c.desc; renderChannels(); renderMessages(); }
+function ensureMessageIds(){
+  Object.keys(messages).forEach(channel=>messages[channel].forEach(m=>{if(!m.id)m.id='MSG-'+Date.now()+'-'+Math.random().toString(36).slice(2);if(m.deleted===undefined)m.deleted=false;}));
+}
+function renderMessages(filter=''){
+  ensureMessageIds();
+  const list=(messages[activeChannel]||[]).filter(m=>!m.deleted&&(m.text||'').toLowerCase().includes(filter.toLowerCase()));
+  messagesEl=document.getElementById('messages');
+  messagesEl.innerHTML=list.map(m=>{
+    if(m.type==='system') return `<div class="system-msg">${esc(m.text)}<div class="message-actions"><button class="message-delete" onclick="deleteMessage('${m.id}')">DELETE</button></div></div>`;
+    let body=m.html?`<div class="rich-content">${m.html}</div>`:`<div class="text">${esc(m.text)}</div>`;
+    if(m.table){ body += `<div class="table-wrap"><table>${m.table.map((r,i)=>`<tr>${r.map(v=>i===0?`<th>${esc(v)}</th>`:`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</table></div>`; }
+    if(m.files) body += m.files.map(f=>`<div class="attachment">[FILE] ${esc(f.name)} (${esc(f.size)})</div><div class="file-actions"><button class="file-link" onclick="openAttachment('${f.id}',false)">OPEN</button><button class="file-link" onclick="openAttachment('${f.id}',true)">DOWNLOAD</button></div>`).join('');
+    body+=`<div class="message-actions"><button class="message-delete" onclick="deleteMessage('${m.id}')">DELETE MESSAGE</button></div>`;
+    return `<div class="message"><div class="avatar">${esc((m.author||'?').slice(0,2))}</div><div><div class="meta"><span class="author">${esc(m.author)}</span><span class="time">${esc(m.time)}</span></div>${body}</div></div>`;
+  }).join('') || '<div class="empty">NO ACTIVE MESSAGES</div>';
+  document.getElementById('messageCount').textContent=String(Object.values(messages).flat().filter(m=>!m.deleted).length).padStart(2,'0');
+  messagesEl.scrollTop=messagesEl.scrollHeight;
+}
+function messageSummary(m){return String(m.text||m.html?.replace(/<[^>]*>/g,' ')||'[ATTACHMENT]').replace(/\s+/g,' ').trim().slice(0,120);}
+function addMessageHistory(action,m,channel){messageHistory.unshift({action,messageId:m.id,summary:messageSummary(m),channel,author:m.author||'SYSTEM',at:historyTime(),by:preferences.name});if(messageHistory.length>1000)messageHistory.length=1000;}
+function deleteMessage(id){const list=messages[activeChannel]||[];const m=list.find(x=>x.id===id);if(!m||!confirm('Move this message to Message Recycle Bin?'))return;m.deleted=true;m.deletedAt=new Date().toISOString();m.deletedBy=preferences.name;addMessageHistory('MESSAGE DELETED',m,activeChannel);save();renderMessages();renderTab();}
+function restoreMessage(channel,id){const m=(messages[channel]||[]).find(x=>x.id===id);if(!m)return;m.deleted=false;m.deletedAt=null;addMessageHistory('MESSAGE RESTORED',m,channel);save();renderMessages();renderTab();}
+function permanentDeleteMessage(channel,id){const list=messages[channel]||[];const m=list.find(x=>x.id===id);if(!m||!confirm('Permanently delete this message? This cannot be undone.'))return;addMessageHistory('MESSAGE PERMANENTLY DELETED',m,channel);messages[channel]=list.filter(x=>x.id!==id);save();renderMessages();renderTab();}
 function now(){ return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false}); }
 
-function renderChannels() {
-    document.getElementById('channelList').innerHTML = channels.map(c => `<button class="channel ${c.id===activeChannel?'active':''}" onclick="setChannel('${c.id}')"><span># ${c.name}</span></button>`).join('');
-}
-
-function setChannel(id) {
-    activeChannel = id;
-    const c = channels.find(x => x.id === id);
-    document.getElementById('channelTitle').textContent = '# ' + c.name;
-    document.getElementById('channelDesc').textContent = c.desc;
-    renderChannels();
-    renderMessages();
-}
-
-function renderMessages() {
-    const list = messages[activeChannel] || [];
-    const el = document.getElementById('messages');
-    el.innerHTML = list.map(m => `
-        <div class="message">
-            <div class="avatar">${esc(m.author.slice(0,2))}</div>
-            <div>
-                <div class="meta"><span class="author">${esc(m.author)}</span><span class="time">${esc(m.time)}</span></div>
-                <div class="text">${m.html || esc(m.text)}</div>
-            </div>
-        </div>
-    `).join('') || '<div style="color:var(--dim); text-align:center; padding:20px;">NO MESSAGES</div>';
-    document.getElementById('msgCount').textContent = list.length;
-    el.scrollTop = el.scrollHeight;
-}
-
-function sendMessage() {
-    const input = document.getElementById('messageInput');
-    const text = input.innerText.trim();
-    if(!text) return;
-    
-    messages[activeChannel].push({
-        id: 'MSG-'+Date.now(),
-        author: preferences.name,
-        time: now(),
-        text: text,
-        html: input.innerHTML
+function sanitizeRichHTML(html){
+  const box=document.createElement('div'); box.innerHTML=html;
+  box.querySelectorAll('script,style,iframe,object,embed,link,meta').forEach(x=>x.remove());
+  box.querySelectorAll('*').forEach(el=>{
+    [...el.attributes].forEach(a=>{
+      if(a.name.toLowerCase().startsWith('on')) el.removeAttribute(a.name);
+      if(['class','id','lang','dir','data-contrast','data-ccp-props'].includes(a.name.toLowerCase())) el.removeAttribute(a.name);
+      if(a.value.toLowerCase().includes('javascript:')) el.removeAttribute(a.name);
     });
-    
-    input.innerHTML = '';
-    localStorage.setItem('autofab_messages', JSON.stringify(messages));
-    renderMessages();
+  });
+  return box.innerHTML;
 }
 
-// Initialization
-applyLook();
-renderChannels();
-renderMessages();
+function handleRichPaste(e){
+  const html=e.clipboardData.getData('text/html');
+  const plain=e.clipboardData.getData('text/plain');
+  if(html){
+    e.preventDefault(); document.execCommand('insertHTML',false,sanitizeRichHTML(html)); return;
+  }
+  if(plain && plain.includes('\t')){
+    e.preventDefault();
+    const rows=plain.replace(/\r/g,'').split('\n').filter((r,i,a)=>r.length || i<a.length-1).map(r=>r.split('\t'));
+    const table='<div class="table-wrap"><table>'+rows.map((r,i)=>'<tr>'+r.map(v=>(i===0?'<th>':'<td>')+esc(v)+(i===0?'</th>':'</td>')).join('')+'</tr>').join('')+'</table></div><p><br></p>';
+    document.execCommand('insertHTML',false,table);
+  }
+}
+function formatText(cmd){ document.getElementById('messageInput').focus(); document.execCommand(cmd,false,null); }
+function sendMessage(){
+  const input=document.getElementById('messageInput');
+  const html=sanitizeRichHTML(input.innerHTML.trim());
+  const text=input.innerText.trim();
+  if(text==='/task'){openModal('task');return} if(text==='/ticket'){openModal('ticket');return} if(text==='/table'){openModal('table');return}
+  if(!text && !html.replace(/<[^>]+>/g,'').trim() && !selectedAttachments.length)return;
+  const m={id:'MSG-'+Date.now()+'-'+Math.random().toString(36).slice(2),author:preferences.name,time:now(),text:text||'Shared attachment(s).',html:html,deleted:false};
+  if(selectedAttachments.length){
+    m.files=selectedAttachments.map(f=>({id:f.id,name:f.name,size:f.size,type:f.type}));
+    selectedAttachments.forEach(f=>{files.unshift({id:f.id,name:f.name,size:f.size,type:f.type,channel:activeChannel,time:now(),deleted:false,deletedAt:null});addFileHistory('UPLOADED',f.name);});
+  }
+  messages[activeChannel].push(m); input.innerHTML=''; selectedAttachments=[]; filePreview.style.display='none'; save(); renderMessages(); renderTab();
+}
+function composerKey(e){ if(e.key==='Enter'&&e.ctrlKey){e.preventDefault();sendMessage()} }
+async function selectFile(input){
+  const chosen=[...input.files];
+  if(!chosen.length)return;
+  filePreview.textContent='UPLOADING: '+chosen.map(f=>f.name).join(' | ');
+  filePreview.style.display='block';
+  try{
+    for(const f of chosen){
+      const form=new FormData();
+      form.append('file',f);
+      const response=await fetch(api('/api/files'),{method:'POST',body:form});
+      if(!response.ok)throw new Error(await response.text());
+      const uploaded=await response.json();
+      selectedAttachments.push({
+        id:uploaded.id,
+        name:uploaded.name,
+        size:(uploaded.bytes/1024<1024?(uploaded.bytes/1024).toFixed(1)+' KB':(uploaded.bytes/1048576).toFixed(1)+' MB'),
+        type:uploaded.type||'application/octet-stream',
+        server:true
+      });
+    }
+    filePreview.textContent='READY: '+selectedAttachments.map(f=>f.name+' ('+f.size+')').join(' | ');
+  }catch(error){
+    console.error(error);
+    filePreview.textContent='UPLOAD FAILED. CHECK SERVER CONNECTION.';
+    alert('File upload failed. Make sure the server is running and try again.');
+  }
+  input.value='';
+}
+function openFileDB(){ return new Promise((resolve,reject)=>{const q=indexedDB.open('AutofabTerminalFiles',1);q.onupgradeneeded=()=>q.result.createObjectStore('files');q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);}); }
+async function storeFile(id,file){ const db=await openFileDB(); return new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').put(file,id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);}); }
+async function getFile(id){ const db=await openFileDB(); return new Promise((resolve,reject)=>{const q=db.transaction('files').objectStore('files').get(id);q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);}); }
+async function openAttachment(id,download=false){
+  if(/^[a-f0-9]{24}$/i.test(id)){
+    const url=api('/api/files/'+encodeURIComponent(id)+(download?'?download=1':''));
+    window.open(url,'_blank','noopener');
+    return;
+  }
+  const blob=await getFile(id);
+  if(!blob){alert('This is an older browser-only attachment. Upload it again after installing the server file update.');return;}
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;if(download)a.download=blob.name||'attachment';else a.target='_blank';a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
+}
+function showTab(tab,btn){ activeTab=tab; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderTab(); }
+function renderTab(){
+  const box=document.getElementById('tabContent');
+  if(activeTab==='tasks') box.innerHTML=tasks.map(x=>`<div class="card"><div class="card-top"><span class="card-id">${esc(x.id)}</span><span class="tag ${x.priority.toLowerCase()}">${esc(x.priority)}</span></div><div class="card-title">${esc(x.title)}</div><div class="card-meta">ASSIGNED: ${esc(x.assignee)}<br>DUE: ${esc(x.due)}</div></div>`).join('')||'<div class="empty">NO TASKS</div>';
+  if(activeTab==='tickets') box.innerHTML=tickets.map(x=>`<div class="card"><div class="card-top"><span class="card-id">${esc(x.id)}</span><span class="tag medium">${esc(x.status)}</span></div><div class="card-title">${esc(x.title)}</div><div class="card-meta">DEPARTMENT: ${esc(x.dept)}</div></div>`).join('')||'<div class="empty">NO TICKETS</div>';
+  if(activeTab==='files'){
+    const live=files.filter(x=>!x.deleted), trash=files.filter(x=>x.deleted);
+    box.innerHTML='<div class="section-head"><span>ACTIVE FILES</span><span>'+live.length+'</span></div>'+live.map(fileCard).join('')+
+      (live.length?'':'<div class="empty">NO ACTIVE FILES</div>')+
+      '<div class="section-head" style="margin-top:18px"><span>RECYCLE BIN</span><span>'+trash.length+'</span></div><div class="bin-actions"><button class="cmd-btn danger-btn" onclick="clearFileBin()">CLEAR FILE BIN</button><button class="cmd-btn danger-btn" onclick="clearAllBins()">CLEAR ALL BINS</button></div>'+trash.map(recycleCard).join('')+
+      (trash.length?'':'<div class="empty">RECYCLE BIN EMPTY</div>');
+  }
+  if(activeTab==='history'){
+    ensureMessageIds();
+    const deleted=Object.entries(messages).flatMap(([channel,list])=>list.filter(m=>m.deleted).map(m=>({channel,m})));
+    const audit=[...fileHistory.map(h=>({...h,kind:'FILE',label:h.name})),...messageHistory.map(h=>({...h,kind:'MESSAGE',label:h.summary}))].sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+    box.innerHTML=`<div class="section-head"><span>MESSAGE RECYCLE BIN</span><span>${deleted.length}</span></div><div class="bin-actions"><button class="cmd-btn danger-btn" onclick="clearMessageBin()">CLEAR MESSAGE BIN</button><button class="cmd-btn danger-btn" onclick="clearAllBins()">CLEAR ALL BINS</button></div>`+
+      (deleted.map(x=>`<div class="recycled-message"><div class="card-id">#${esc(x.channel.toUpperCase())} | ${esc(x.m.author||'SYSTEM')}</div><div class="card-title">${esc(messageSummary(x.m))}</div><div class="card-meta">DELETED BY: ${esc(x.m.deletedBy||'UNKNOWN')}</div><div class="file-actions"><button class="file-link" onclick="restoreMessage('${x.channel}','${x.m.id}')">RESTORE</button><button class="file-link danger-btn" onclick="permanentDeleteMessage('${x.channel}','${x.m.id}')">DELETE FOREVER</button></div></div>`).join('')||'<div class="empty">MESSAGE RECYCLE BIN EMPTY</div>')+
+      `<div class="section-head" style="margin-top:18px"><span>COMPLETE AUDIT HISTORY</span><span>${audit.length}</span></div>`+
+      (audit.map(h=>`<div class="history-line"><b>[${esc(h.kind)}] ${esc(h.action)}</b> ${esc(h.label||'')}<small>${esc(h.at)} | BY: ${esc(h.by||'')} ${h.channel?'| #'+esc(h.channel.toUpperCase()):''}</small></div>`).join('')||'<div class="empty">NO AUDIT HISTORY</div>');
+  }
+  taskCount.textContent=String(tasks.length).padStart(2,'0'); ticketCount.textContent=String(tickets.length).padStart(2,'0');
+}
+
+async function clearFileBin(skipConfirm=false){
+  const trash=files.filter(x=>x.deleted);if(!trash.length){if(!skipConfirm)alert('File Recycle Bin is already empty.');return true;}
+  if(!skipConfirm&&!confirm(`Permanently delete all ${trash.length} recycled file(s)? This cannot be undone.`))return false;
+
+  try {
+    const db=await openFileDB();
+    await Promise.all(trash.map(async (f) => {
+      // Deletes the backend physical file if it exists on server
+      if(/^[a-f0-9]{24}$/i.test(f.id)) {
+        await fetch(api('/api/files/'+f.id), { method: 'DELETE' }).catch(e=>console.error(e));
+      }
+      return new Promise(resolve=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').delete(f.id);tx.oncomplete=resolve;tx.onerror=resolve;});
+    }));
+  } catch(e) { console.error(e); }
+
+  trash.forEach(f=>addFileHistory('PERMANENTLY DELETED BY CLEAR BIN:',f.name));
+  files=files.filter(x=>!x.deleted);
+  save();renderTab();return true;
+}
+
+function clearMessageBin(skipConfirm=false){
+  const deleted=Object.entries(messages).flatMap(([channel,list])=>list.filter(m=>m.deleted).map(m=>({channel,m})));
+  if(!deleted.length){if(!skipConfirm)alert('Message Recycle Bin is already empty.');return true;}
+  if(!skipConfirm&&!confirm(`Permanently delete all ${deleted.length} recycled message(s)? This cannot be undone.`))return false;
+  deleted.forEach(x=>addMessageHistory('MESSAGE PERMANENTLY DELETED BY CLEAR BIN',x.m,x.channel));Object.keys(messages).forEach(channel=>messages[channel]=messages[channel].filter(m=>!m.deleted));save();renderMessages();renderTab();return true;
+}
+
+async function clearAllBins(){
+  const fc=files.filter(x=>x.deleted).length,mc=Object.values(messages).flat().filter(m=>m.deleted).length;
+  if(!fc&&!mc){alert('All recycle bins are already empty.');return;}
+  if(!confirm(`Permanently clear ${fc} file(s) and ${mc} message(s) from all recycle bins?`))return;
+  await clearFileBin(true);clearMessageBin(true);renderTab();
+}
+
+function fileCard(x){ return `<div class="card"><span class="card-id">[FILE]</span><div class="card-title">${esc(x.name)}</div><div class="card-meta">${esc(x.size)} | #${esc((x.channel||'').toUpperCase())} | ${esc(x.time)}</div><div class="file-actions"><button class="file-link" onclick="openAttachment('${x.id}',false)">OPEN</button><button class="file-link" onclick="openAttachment('${x.id}',true)">DOWNLOAD</button><button class="file-link danger-btn" onclick="moveFileToRecycle('${x.id}')">DELETE</button></div></div>`; }
+function recycleCard(x){ return `<div class="card deleted-file"><span class="card-id">[RECYCLED]</span><div class="card-title">${esc(x.name)}</div><div class="card-meta">DELETED: ${esc(x.deletedAt||'')}</div><div class="file-actions"><button class="file-link" onclick="restoreFile('${x.id}')">RESTORE</button><button class="file-link danger-btn" onclick="permanentDeleteFile('${x.id}')">DELETE FOREVER</button></div></div>`; }
+function historyTime(){return new Date().toLocaleString('en-IN',{hour12:false});}
+function addFileHistory(action,name){fileHistory.unshift({action,name,at:historyTime(),by:preferences.name});if(fileHistory.length>500)fileHistory.length=500;}
+function moveFileToRecycle(id){const f=files.find(x=>x.id===id);if(!f||!confirm(`Move ${f.name} to Recycle Bin?`))return;f.deleted=true;f.deletedAt=historyTime();addFileHistory('MOVED TO RECYCLE BIN:',f.name);save();renderTab();}
+function restoreFile(id){const f=files.find(x=>x.id===id);if(!f)return;f.deleted=false;f.deletedAt=null;addFileHistory('RESTORED:',f.name);save();renderTab();}
+
+async function permanentDeleteFile(id){
+  const f=files.find(x=>x.id===id);
+  if(!f||!confirm(`Permanently delete ${f.name}? This cannot be undone.`))return;
+  
+  try {
+    if(/^[a-f0-9]{24}$/i.test(id)) {
+      await fetch(api('/api/files/'+id), { method: 'DELETE' }).catch(e=>console.error(e));
+    }
+    const db=await openFileDB();
+    await new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});
+  } catch(e) { console.error('Deletion error:', e); }
+
+  files=files.filter(x=>x.id!==id);
+  addFileHistory('PERMANENTLY DELETED:',f.name);
+  save(); renderTab();
+}
+
+function openModal(type, recordId=null){
+  modalWrap.classList.add('show'); modalWrap.dataset.type=type;
+  if(type==='task'){
+    modalTitle.textContent='CREATE NEW TASK'; modalBody.innerHTML=`<label>TASK TITLE</label><input id="fTitle" placeholder="E.g. Verify employee documents"><div class="form-grid"><div><label>ASSIGNED TO</label><input id="fAssign" value="ADMIN-HR"></div><div><label>DUE DATE</label><input id="fDue" type="date"></div></div><label>PRIORITY</label><select id="fPriority"><option>HIGH</option><option selected>MEDIUM</option><option>LOW</option></select><div class="modal-actions"><button class="cmd-btn" onclick="closeModal()">CANCEL</button><button class="cmd-btn" onclick="createTask()">CREATE TASK</button></div>`;
+  } else if(type==='ticket'){
+    modalTitle.textContent='OPEN NEW TICKET'; modalBody.innerHTML=`<label>ISSUE TITLE</label><input id="fTitle" placeholder="Describe the issue"><div class="form-grid"><div><label>DEPARTMENT</label><input id="fDept" value="HR"></div><div><label>STATUS</label><select id="fStatus"><option>OPEN</option><option>IN PROGRESS</option></select></div></div><div class="modal-actions"><button class="cmd-btn" onclick="closeModal()">CANCEL</button><button class="cmd-btn" onclick="createTicket()">OPEN TICKET</button></div>`;
+  } else if(type==='event') {
+    renderEventForm(recordId);
+  } else {
+    modalTitle.textContent='PASTE TABLE FROM EXCEL'; modalBody.innerHTML=`<div style="color:var(--dim);line-height:1.5">Copy cells from Excel, then paste below. Columns should be separated by tabs and rows by new lines.</div><label>TABLE TITLE</label><input id="fTableTitle" value="Shared Table"><label>PASTE CELLS HERE</label><textarea id="fTable" onpaste="previewTablePaste(event)" placeholder="EMP ID\tNAME\tDEPARTMENT&#10;001\tRAJ\tHR"></textarea><div class="modal-actions"><button class="cmd-btn" onclick="closeModal()">CANCEL</button><button class="cmd-btn" onclick="createTable()">POST TABLE</button><div id="tablePreview"></div></div>`;
+  }
+  setTimeout(()=>modalBody.querySelector('input,textarea')?.focus(),50);
+}
+function closeModal(){ modalWrap.classList.remove('show'); }
+function backdropClose(e){ if(e.target===modalWrap)closeModal(); }
+function createTask(){ const title=fTitle.value.trim(); if(!title)return; const id='TASK-'+String(tasks.length+1).padStart(3,'0'); const due=fDue.value?fDue.value.split('-').reverse().join('-'):'NOT SET'; tasks.unshift({id,title,assignee:fAssign.value||'UNASSIGNED',due,priority:fPriority.value}); messages[activeChannel].push({type:'system',text:`[TASK CREATED] ${id}: ${title}`}); save(); closeModal(); activeTab='tasks'; syncTabButtons(); renderTab(); renderMessages(); }
+function createTicket(){ const title=fTitle.value.trim(); if(!title)return; const id='TKT-'+String(tickets.length+1).padStart(3,'0'); tickets.unshift({id,title,dept:fDept.value||'GENERAL',status:fStatus.value}); messages[activeChannel].push({type:'system',text:`[TICKET OPENED] ${id}: ${title}`}); save(); closeModal(); activeTab='tickets'; syncTabButtons(); renderTab(); renderMessages(); }
+function previewTablePaste(e){ setTimeout(()=>{const raw=fTable.value.trim();if(!raw){tablePreview.innerHTML='';return}const rows=raw.replace(/\r/g,'').split('\n').map(r=>r.includes('\t')?r.split('\t'):r.split(','));tablePreview.innerHTML='<div class="table-wrap"><table>'+rows.map((r,i)=>'<tr>'+r.map(v=>(i===0?'<th>':'<td>')+esc(v.trim())+(i===0?'</th>':'</td>')).join('')+'</tr>').join('')+'</table></div>';},0);}
+function createTable(){ const raw=fTable.value.trim(); if(!raw)return; const rows=raw.replace(/\r/g,'').split('\n').map(r=>r.includes('\t')?r.split('\t'):r.split(',')); messages[activeChannel].push({author:preferences.name,time:now(),text:'TABLE: '+fTableTitle.value,table:rows}); save(); closeModal(); renderMessages(); }
+function syncTabButtons(){ document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['tasks','tickets','files','history'][i]===activeTab)); }
+function clearChannel(){ if(confirm('Clear messages in this activity channel?')){messages[activeChannel]=[{type:'system',text:'[SYSTEM] Channel view cleared by ADMIN-HR.'}];save();renderMessages();} }
+
+function openSettings(){
+  profileName.value=preferences.name; apiUrlInput.value=apiUrl; settingsShade.classList.add('show'); renderChannelAdmin(); applyPreferences();
+}
+function closeSettings(){ settingsShade.classList.remove('show'); }
+function settingsBackdrop(e){ if(e.target===settingsShade)closeSettings(); }
+function slugify(name){ return name.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+function addChannel(){
+  const name=newChannelName.value.trim().toUpperCase(); const desc=newChannelDesc.value.trim().toUpperCase()||'TEAM ACTIVITY CHANNEL';
+  if(!name){alert('Enter a channel name.');return}
+  let id=slugify(name); if(!id)id='channel-'+Date.now();
+  if(channels.some(c=>c.id===id)){alert('A channel with this name already exists.');return}
+  channels.push({id,name,desc,unread:0}); messages[id]=[{type:'system',text:`[SYSTEM] #${name} activity channel created by ${preferences.name}.`}];
+  newChannelName.value=''; newChannelDesc.value=''; save(); renderChannels(); renderChannelAdmin();
+}
+function deleteChannel(id){
+  if(channels.length===1){alert('At least one activity channel is required.');return}
+  const c=channels.find(x=>x.id===id); if(!c||!confirm(`Delete #${c.name} and all of its messages?`))return;
+  channels=channels.filter(x=>x.id!==id); delete messages[id];
+  if(activeChannel===id){activeChannel=channels[0].id; const first=channels[0]; channelTitle.textContent='# '+first.name; channelDesc.textContent=first.desc;}
+  save(); renderChannels(); renderChannelAdmin(); renderMessages();
+}
+function renameChannel(id){
+  const c=channels.find(x=>x.id===id); if(!c)return; const name=prompt('New channel display name:',c.name); if(!name)return;
+  c.name=name.trim().toUpperCase(); if(activeChannel===id)channelTitle.textContent='# '+c.name; save();renderChannels();renderChannelAdmin();
+}
+function renderChannelAdmin(){
+  channelAdminList.innerHTML=channels.map(c=>`<div class="channel-admin"><span>&gt; # ${esc(c.name)}</span><button class="icon-btn" onclick="renameChannel('${c.id}')">EDIT</button><button class="icon-btn danger-btn" onclick="deleteChannel('${c.id}')">DELETE</button></div>`).join('');
+}
+function saveProfile(){ preferences.name=profileName.value.trim().toUpperCase()||'ADMIN-HR'; save(); applyPreferences(); }
+function toggleSetting(key){ preferences[key]=!preferences[key]; save(); applyPreferences(); }
+
+function applyPreferences(){
+  document.body.classList.toggle('compact',!!preferences.compact); document.body.classList.toggle('no-scanlines',!preferences.scan);
+  if(typeof compactToggle !== 'undefined' && compactToggle) compactToggle.classList.toggle('on',!!preferences.compact); 
+  if(typeof scanToggle !== 'undefined' && scanToggle) scanToggle.classList.toggle('on',!!preferences.scan); 
+  if(typeof soundToggle !== 'undefined' && soundToggle) soundToggle.classList.toggle('on',!!preferences.sound);
+  const label=document.querySelector('.user-label'); if(label)label.textContent=preferences.name+' [ONLINE]';
+  applyLook();
+}
+
+function exportData(){
+  const data={version:'1.7',exportedAt:new Date().toISOString(),channels,messages,tasks,tickets,files,preferences,fileHistory,messageHistory,customFeature,calendarEvents};
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='autofab_terminal_backup.json'; a.click(); URL.revokeObjectURL(a.href);
+}
+function importBackup(input){
+  const file=input.files[0]; if(!file)return; const reader=new FileReader(); reader.onload=()=>{try{const d=JSON.parse(reader.result); if(!Array.isArray(d.channels)||!d.messages)throw Error(); channels=d.channels;messages=d.messages;tasks=d.tasks||[];tickets=d.tickets||[];files=d.files||[];preferences=d.preferences||preferences;fileHistory=d.fileHistory||[];messageHistory=d.messageHistory||[];customFeature=d.customFeature||customFeature;calendarEvents=d.calendarEvents||[];activeChannel=channels[0].id;save();location.reload();}catch(e){alert('Invalid Autofab Terminal backup file.')}};reader.readAsText(file);input.value='';
+}
+function resetApp(){ if(!confirm('Reset all channels, messages, tasks, tickets and settings? This cannot be undone.'))return; ['autofab_messages','autofab_tasks','autofab_tickets','autofab_files','autofab_channels','autofab_preferences','autofab_file_history','autofab_message_history','autofab_custom_feature','autofab_calendar_events','autofab_api_url', 'autofab_look'].forEach(k=>localStorage.removeItem(k)); location.reload(); }
+
+function openFeatureEditor(){closeSettings();editorWrap.classList.add('show');featureName.value=customFeature.name||'CUSTOM MODULE';featureHTML.value=customFeature.html||'';featureCSS.value=customFeature.css||'';featureJS.value=customFeature.js||'';previewFeature();}
+function closeFeatureEditor(){editorWrap.classList.remove('show');}
+function editorBackdrop(e){if(e.target===editorWrap)closeFeatureEditor();}
+function featureDocument(){return `<!doctype html><html><head><meta charset="utf-8"><style>body{background:#020702;color:#35ff67;font-family:Consolas,monospace;padding:14px}button,input{font:inherit}${featureCSS.value}</style></head><body>${featureHTML.value}<script>${featureJS.value}<\/script></body></html>`;}
+function previewFeature(){featurePreview.srcdoc=featureDocument();}
+function applyFeature(){customFeature={name:featureName.value.trim()||'CUSTOM MODULE',html:featureHTML.value,css:featureCSS.value,js:featureJS.value};save();mountCustomFeature();addFileHistory('FEATURE APPLIED:',customFeature.name);save();alert('Feature applied and saved in this browser.');}
+function mountCustomFeature(){
+  const mount=document.getElementById('customModuleMount');mount.innerHTML='';document.getElementById('customFeatureStyle')?.remove();document.getElementById('customFeatureScript')?.remove();
+  if(!customFeature.html&&!customFeature.css&&!customFeature.js)return;
+  if(customFeature.css){const style=document.createElement('style');style.id='customFeatureStyle';style.textContent=customFeature.css;document.head.appendChild(style);}
+  if(customFeature.html){const block=document.createElement('section');block.className='custom-module';block.innerHTML=customFeature.html;mount.appendChild(block);}
+  if(customFeature.js){try{const script=document.createElement('script');script.id='customFeatureScript';script.textContent=customFeature.js;document.body.appendChild(script);}catch(e){alert('Custom JavaScript error: '+e.message);}}
+}
+function removeFeature(){if(!confirm('Remove the applied custom feature?'))return;customFeature={name:'',html:'',css:'',js:''};save();mountCustomFeature();featureName.value='CUSTOM MODULE';featureHTML.value='';featureCSS.value='';featureJS.value='';featurePreview.srcdoc='';}
+function exportCustomizedHTML(){
+  const clone=document.documentElement.cloneNode(true);
+  clone.querySelector('#settingsShade')?.classList.remove('show');clone.querySelector('#modalWrap')?.classList.remove('show');clone.querySelector('#editorWrap')?.classList.remove('show');clone.querySelector('#themeStudio')?.classList.remove('show');
+  const stateScript=clone.querySelector('body');
+  const boot=document.createElement('script');boot.textContent=`localStorage.setItem('autofab_custom_feature',${JSON.stringify(JSON.stringify({name:featureName.value.trim()||'CUSTOM MODULE',html:featureHTML.value,css:featureCSS.value,js:featureJS.value}))});`;
+  stateScript.appendChild(boot);
+  const blob=new Blob(['<!DOCTYPE html>\n'+clone.outerHTML],{type:'text/html'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='autofab_team_terminal_custom.html';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+function openCalendar(){ calendarWrap.classList.add('show'); renderCalendar(); }
+function closeCalendar(){ calendarWrap.classList.remove('show'); }
+function calendarBackdrop(e){ if(e.target===calendarWrap)closeCalendar(); }
+function changeMonth(n){ calendarDate=new Date(calendarDate.getFullYear(),calendarDate.getMonth()+n,1);renderCalendar(); }
+function goToday(){ calendarDate=new Date();renderCalendar(); }
+function localISODate(d){ const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return `${y}-${m}-${day}`; }
+function renderCalendar(){
+  const y=calendarDate.getFullYear(),m=calendarDate.getMonth();
+  calendarTitle.textContent=new Intl.DateTimeFormat('en-IN',{month:'long',year:'numeric'}).format(calendarDate).toUpperCase();
+  const names=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  let html=names.map(x=>`<div class="calendar-weekday">${x}</div>`).join('');
+  const first=new Date(y,m,1); const start=new Date(y,m,1-first.getDay()); const today=localISODate(new Date());
+  for(let i=0;i<42;i++){
+    const d=new Date(start);d.setDate(start.getDate()+i);const iso=localISODate(d);
+    const events=calendarEvents.filter(x=>x.date===iso).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+    html+=`<div class="calendar-day ${d.getMonth()!==m?'other':''} ${iso===today?'today':''}" ondblclick="openEventEditor(null,'${iso}')"><div class="day-number">${d.getDate()}</div>${events.map(e=>`<button class="calendar-event ${(e.priority||'low').toLowerCase()}" onclick="openEventEditor('${e.id}')" title="${esc(e.title)}">${esc(e.time||'ALL DAY')} ${esc(e.title)}</button>`).join('')}</div>`;
+  }
+  calendarGrid.innerHTML=html;
+}
+function openEventEditor(id=null,date='') { closeCalendar(); openModal('event',id); if(!id&&date)document.getElementById('eventDate').value=date; }
+function renderEventForm(id){
+  const e=calendarEvents.find(x=>x.id===id)||{title:'',date:localISODate(new Date()),time:'09:00',channel:activeChannel,priority:'MEDIUM',notes:''};
+  modalTitle.textContent=id?'EDIT CALENDAR EVENT':'CREATE CALENDAR EVENT';
+  modalBody.innerHTML=`<label>EVENT TITLE</label><input id="eventTitle" value="${esc(e.title)}"><div class="form-grid"><div><label>DATE</label><input id="eventDate" type="date" value="${esc(e.date)}"></div><div><label>TIME</label><input id="eventTime" type="time" value="${esc(e.time||'')}"></div></div><div class="form-grid"><div><label>ACTIVITY CHANNEL</label><select id="eventChannel">${channels.map(c=>`<option value="${c.id}" ${c.id===e.channel?'selected':''}>${esc(c.name)}</option>`).join('')}</select></div><div><label>PRIORITY</label><select id="eventPriority"><option ${e.priority==='HIGH'?'selected':''}>HIGH</option><option ${e.priority==='MEDIUM'?'selected':''}>MEDIUM</option><option ${e.priority==='LOW'?'selected':''}>LOW</option></select></div></div><label>NOTES</label><textarea id="eventNotes">${esc(e.notes||'')}</textarea>${id?`<div class="calendar-export-note">EXPORT / ADD TO ANOTHER CALENDAR<br>ICS works with Google Calendar, Microsoft Outlook, Apple Calendar and other calendar applications.</div><div class="file-actions"><button class="cmd-btn" onclick="exportEventICS('${id}')">DOWNLOAD .ICS</button><button class="cmd-btn" onclick="addEventToGoogle('${id}')">ADD TO GOOGLE</button><button class="cmd-btn" onclick="addEventToOutlook('${id}')">ADD TO OUTLOOK</button></div>`:''}<div class="modal-actions">${id?`<button class="cmd-btn danger-btn" onclick="deleteEvent('${id}')">DELETE</button>`:''}<button class="cmd-btn" onclick="closeModal();openCalendar()">CANCEL</button><button class="cmd-btn" onclick="saveEvent('${id||''}')">SAVE EVENT</button></div>`;
+}
+function saveEvent(id){
+  const title=eventTitle.value.trim();if(!title||!eventDate.value){alert('Event title and date are required.');return;}
+  const record={id:id||'EVT-'+Date.now(),title,date:eventDate.value,time:eventTime.value,channel:eventChannel.value,priority:eventPriority.value,notes:eventNotes.value.trim(),updatedAt:new Date().toISOString()};
+  const index=calendarEvents.findIndex(x=>x.id===id);if(index>=0)calendarEvents[index]=record;else calendarEvents.push(record);
+  messages[record.channel]=messages[record.channel]||[];messages[record.channel].push({type:'system',text:`[CALENDAR] ${record.title} scheduled for ${record.date}${record.time?' '+record.time:''}`});save();closeModal();openCalendar();
+}
+function deleteEvent(id){const e=calendarEvents.find(x=>x.id===id);if(!e||!confirm(`Delete calendar event: ${e.title}?`))return;calendarEvents=calendarEvents.filter(x=>x.id!==id);save();closeModal();openCalendar();}
+
+function padICS(n){return String(n).padStart(2,'0');}
+function parseLocalEventDate(e,end=false){
+  const parts=e.date.split('-').map(Number);const time=(e.time||'09:00').split(':').map(Number);
+  const d=new Date(parts[0],parts[1]-1,parts[2],time[0]||0,time[1]||0,0);
+  if(end)d.setHours(d.getHours()+1);return d;
+}
+function utcICS(d){return d.getUTCFullYear()+padICS(d.getUTCMonth()+1)+padICS(d.getUTCDate())+'T'+padICS(d.getUTCHours())+padICS(d.getUTCMinutes())+padICS(d.getUTCSeconds())+'Z';}
+function escapeICS(v=''){return String(v).replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');}
+function foldICS(line){const out=[];while(line.length>73){out.push(line.slice(0,73));line=' '+line.slice(73);}out.push(line);return out.join('\r\n');}
+function eventICS(e){
+  const channel=channels.find(c=>c.id===e.channel)?.name||e.channel||'GENERAL';
+  return ['BEGIN:VEVENT',`UID:${escapeICS(e.id)}@autofab-terminal`,`DTSTAMP:${utcICS(new Date())}`,`DTSTART:${utcICS(parseLocalEventDate(e))}`,`DTEND:${utcICS(parseLocalEventDate(e,true))}`,`SUMMARY:${escapeICS(e.title)}`,`DESCRIPTION:${escapeICS((e.notes||'')+'\\nActivity: '+channel+'\\nPriority: '+(e.priority||'MEDIUM'))}`,`CATEGORIES:${escapeICS(channel)},${escapeICS(e.priority||'MEDIUM')}`,'BEGIN:VALARM','TRIGGER:-PT15M','ACTION:DISPLAY',`DESCRIPTION:${escapeICS(e.title)}`,'END:VALARM','END:VEVENT'].map(foldICS).join('\r\n');
+}
+function calendarICS(list){return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Autofab//Team Terminal Calendar//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH',...list.map(eventICS),'END:VCALENDAR'].join('\r\n');}
+function downloadTextFile(name,text,type){const blob=new Blob([text],{type:type||'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function safeFileName(v){return String(v||'event').replace(/[^a-z0-9_-]+/gi,'-').replace(/^-|-$/g,'').slice(0,70)||'event';}
+function exportEventICS(id){const e=calendarEvents.find(x=>x.id===id);if(!e)return;downloadTextFile(safeFileName(e.title)+'.ics',calendarICS([e]),'text/calendar;charset=utf-8');}
+function exportAllCalendarICS(){if(!calendarEvents.length){alert('There are no calendar events to export.');return;}downloadTextFile('autofab-team-calendar.ics',calendarICS(calendarEvents),'text/calendar;charset=utf-8');}
+function googleDateRange(e){return utcICS(parseLocalEventDate(e))+'/'+utcICS(parseLocalEventDate(e,true));}
+function addEventToGoogle(id){
+  const e=calendarEvents.find(x=>x.id===id);if(!e)return;const channel=channels.find(c=>c.id===e.channel)?.name||e.channel||'';
+  const q=new URLSearchParams({action:'TEMPLATE',text:e.title,dates:googleDateRange(e),details:(e.notes||'')+'\nActivity: '+channel+'\nPriority: '+(e.priority||'MEDIUM')});
+  window.open('https://calendar.google.com/calendar/render?'+q.toString(),'_blank','noopener');
+}
+function addEventToOutlook(id){
+  const e=calendarEvents.find(x=>x.id===id);if(!e)return;const channel=channels.find(c=>c.id===e.channel)?.name||e.channel||'';
+  const q=newSearchParams({path:'/calendar/action/compose',rru:'addevent',subject:e.title,startdt:parseLocalEventDate(e).toISOString(),enddt:parseLocalEventDate(e,true).toISOString(),body:(e.notes||'')+'\nActivity: '+channel+'\nPriority: '+(e.priority||'MEDIUM')});
+  window.open('https://outlook.office.com/calendar/0/deeplink/compose?'+q.toString(),'_blank','noopener');
+}
+
+function api(path=''){ return (apiUrl||'').replace(/\/$/,'')+path; }
+function appState(){ return {channels,messages,tasks,tickets,files,preferences,fileHistory,messageHistory,customFeature,calendarEvents}; }
+function setCloud(text,online){ const el=document.getElementById('cloudState');if(!el)return;el.textContent=text;el.classList.toggle('online',!!online);el.classList.toggle('offline',online===false); }
+async function testServer(){ try{const r=await fetch(api('/api/health'));if(!r.ok)throw Error();const d=await r.json();setCloud('DB: '+String(d.database||'ONLINE').toUpperCase(),true);alert('Backend and MongoDB connection are working.');}catch(e){setCloud('DB: OFFLINE',false);alert('Cannot connect to backend. Start server.js and check the API URL.');} }
+async function pushState(){
+  try{const r=await fetch(api('/api/state'),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(appState())});if(!r.ok)throw Error(await r.text());setCloud('DB: SYNCED',true);}catch(e){setCloud('DB: LOCAL MODE',false);}
+}
+async function loadServerState(silent=false){
+  try{const r=await fetch(api('/api/state'));if(!r.ok)throw Error();const d=await r.json();if(!d||!d.state){setCloud('DB: EMPTY',true);return;}
+    isApplyingServerState=true;const x=d.state;channels=x.channels||channels;messages=x.messages||messages;tasks=x.tasks||tasks;tickets=x.tickets||tickets;files=x.files||files;preferences=x.preferences||preferences;fileHistory=x.fileHistory||fileHistory;messageHistory=x.messageHistory||messageHistory;customFeature=x.customFeature||customFeature;calendarEvents=x.calendarEvents||calendarEvents;activeChannel=channels[0]?.id||activeChannel;save();isApplyingServerState=false;applyPreferences();renderChannels();renderMessages();renderTab();mountCustomFeature();setCloud('DB: LOADED',true);if(!silent)alert('MongoDB data loaded.');
+  }catch(e){isApplyingServerState=false;setCloud('DB: LOCAL MODE',false);if(!silent)alert('Server data could not be loaded.');}
+}
+function saveApiSettings(){apiUrl=apiUrlInput.value.trim();localStorage.setItem('autofab_api_url',apiUrl);testServer();}
+
+document.getElementById('search').addEventListener('input',e=>renderMessages(e.target.value));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&themeStudio.classList.contains('show'))closeThemeStudio();});
+setInterval(()=>{const el=document.getElementById('clock'); if(el) el.textContent=new Date().toLocaleString('en-IN',{hour12:false});},1000);
+applyPreferences(); renderChannels(); renderMessages(); renderTab(); mountCustomFeature(); loadServerState(true);
 </script>
 </body>
 </html>
