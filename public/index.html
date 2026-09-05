@@ -171,6 +171,11 @@
     .preview-frame { width:100%; height:230px; border:1px solid var(--line); background:white; margin-top:10px; }
     .dev-warning { border:1px solid var(--amber); color:var(--amber); padding:8px; margin-bottom:10px; line-height:1.45; }
     .custom-module { border:1px solid var(--line); background:#061207; padding:10px; margin:10px; }
+
+/* INTEGRATED THEME STUDIO */
+body{--custom-accent:#35ff67}body[data-theme="sunset"]{--bg:#180826;--panel:#321540;--panel-2:#4a2054;--green:#ffbd59;--green-soft:#fff1c9;--dim:#d59bc2;--line:#b94d92;--cyan:#70f7ff;background:linear-gradient(145deg,#240b40,#7d275e)}body[data-theme="ocean"]{--bg:#031525;--panel:#082d42;--panel-2:#0c4761;--green:#55f6db;--green-soft:#e4fffb;--dim:#70aebd;--line:#168aa0;--cyan:#8be7ff;background:linear-gradient(145deg,#021221,#064766)}body[data-theme="anime"]{--bg:#13152f;--panel:#24254e;--panel-2:#34346a;--green:#ff94cf;--green-soft:#fff3fb;--dim:#b7acd3;--line:#906bd7;--cyan:#7de9ff;background:linear-gradient(145deg,#162052,#6a377f)}body[data-theme="cartoon"]{--bg:#142a61;--panel:#254b9a;--panel-2:#3564b7;--green:#ffe33a;--green-soft:#fffbd1;--dim:#b7c8ef;--line:#ff6b6b;--cyan:#64fff1;background:linear-gradient(140deg,#17377c,#7838ad)}body[data-theme="glass"]{--bg:#071025;--panel:rgba(24,39,75,.76);--panel-2:rgba(49,69,115,.68);--green:#74e7ff;--green-soft:#f1fbff;--dim:#91a7ce;--line:#5badc3;--cyan:#be8dff;background:linear-gradient(145deg,#060c1c,#294ed1)}body[data-theme="pastel"]{--bg:#ebe8fb;--panel:#fffaff;--panel-2:#e9f5ff;--green:#835bcc;--green-soft:#44345e;--dim:#80758f;--line:#bca8e4;--cyan:#187c91;background:linear-gradient(145deg,#f8eeff,#ddf4ee);color:var(--green)}body.custom-accent{--green:var(--custom-accent)!important;--cyan:var(--custom-accent)!important}body.ui3d .card,body.ui3d .stat,body.ui3d .message,body.ui3d .settings-section{border-radius:14px;box-shadow:inset 1px 1px rgba(255,255,255,.13),0 10px 25px rgba(0,0,0,.25)}body.ui3d .cmd-btn,body.ui3d .icon-btn{border-radius:9px;box-shadow:inset 1px 1px rgba(255,255,255,.15),0 5px 12px rgba(0,0,0,.22)}
+.theme-launch{width:100%;padding:15px;text-align:left;border:1px solid var(--green);background:linear-gradient(135deg,var(--panel-2),var(--panel));color:var(--green-soft)}.theme-page{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);color:var(--green);overflow:auto}.theme-page.show{display:block}.theme-head{position:sticky;top:0;z-index:4;display:flex;justify-content:space-between;align-items:center;padding:13px 18px;border-bottom:1px solid var(--line);background:var(--panel)}.theme-body{max-width:1200px;margin:auto;padding:18px}.theme-layout{display:grid;grid-template-columns:1fr 330px;gap:16px}.theme-panel{border:1px solid var(--line);background:var(--panel);padding:15px;margin-bottom:14px}.theme-grid,.bg-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.theme-card{padding:0;border:2px solid transparent;background:var(--panel-2);color:var(--green-soft);text-align:left;border-radius:12px;overflow:hidden}.theme-card.active,.bg-card.active{border-color:var(--green)}.theme-thumb{height:105px;padding:9px;background:linear-gradient(135deg,var(--a),var(--b),var(--c))}.mini-top{height:11px;background:rgba(255,255,255,.3);border-radius:4px}.mini-body{display:grid;grid-template-columns:25% 1fr;gap:6px;margin-top:7px;height:70px}.mini-body span{display:block;border-radius:5px;background:rgba(0,0,0,.25);box-shadow:inset 1px 1px rgba(255,255,255,.2)}.theme-label{padding:9px}.bg-card{height:58px;border:2px solid transparent;border-radius:9px;color:white;text-shadow:0 1px 3px black;font-size:10px}.control-row{display:grid;grid-template-columns:1fr auto;gap:9px;align-items:center;padding:9px 0;border-bottom:1px dotted var(--line)}.color-pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}.color-pair input{height:43px;padding:3px}.range-line{display:grid;grid-template-columns:1fr 48px;gap:8px;align-items:center}.workspace{position:relative;isolation:isolate}.workspace:before{content:"";position:absolute;inset:55px 0 0;z-index:-2;background:var(--msg-bg,linear-gradient(135deg,#061006,#020702));background-size:cover;opacity:var(--msg-opacity,.95)}.workspace:after{content:"";position:absolute;inset:55px 0 0;z-index:-1;background-image:var(--msg-pattern,none);background-size:24px 24px;opacity:var(--pattern-opacity,0)}.messages{background:transparent!important}.message{background:rgba(2,7,2,var(--card-opacity,.28));backdrop-filter:blur(var(--card-blur,0px))}@media(max-width:900px){.theme-layout{grid-template-columns:1fr}.theme-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.theme-body{padding:8px}.theme-grid,.bg-grid{grid-template-columns:repeat(2,1fr)}}
+
     @media(max-width:700px){ .editor-grid{grid-template-columns:1fr} }
 
     .calendar-shell { padding:12px; min-height:0; overflow:auto; }
@@ -288,7 +293,7 @@
   </main>
   <div id="customModuleMount"></div>
 
-  <footer class="footer"><span>SYS: CONNECTED | STORAGE: LOCAL | ENCRYPTION: DEMO MODE</span><span id="clock"></span></footer>
+  <footer class="footer"><span>SYS: CONNECTED | STORAGE: SERVER + MONGODB | ENCRYPTION: DEMO MODE</span><span id="clock"></span></footer>
 </div>
 
 
@@ -319,6 +324,7 @@
           <div id="channelAdminList"></div>
         </div>
       </section>
+      <section class="settings-section"><div class="settings-section-title">THEME & BACKGROUND</div><div class="settings-section-body"><button class="theme-launch" onclick="openThemeStudio()"><b>OPEN THEME STUDIO</b><div class="settings-note">UI themes, thumbnails, 3D effects and messenger backgrounds</div></button></div></section>
       <section class="settings-section">
         <div class="settings-section-title">PROFILE & DISPLAY</div>
         <div class="settings-section-body">
@@ -335,7 +341,7 @@
           <button class="cmd-btn" style="width:100%;margin-bottom:7px" onclick="document.getElementById('importData').click()">IMPORT BACKUP</button>
           <input id="importData" type="file" accept=".json,application/json" hidden onchange="importBackup(this)">
           <button class="cmd-btn danger-btn" style="width:100%" onclick="resetApp()">RESET ALL LOCAL DATA</button>
-          <div class="settings-note" style="margin-top:9px">This prototype stores information only in this browser. Attachments display file details, but do not upload the file.</div>
+          <div class="settings-note" style="margin-top:9px">Attachments are uploaded to this hosting PC and can be opened by other computers on the network.</div>
         </div>
       </section>
       <section class="settings-section">
@@ -361,6 +367,7 @@
   </aside>
 </div>
 
+<div id="themeStudio" class="theme-page" aria-hidden="true"><div class="theme-head"><b>✦ THEME & MESSENGER STUDIO</b><button class="icon-btn" onclick="closeThemeStudio()">[X] CLOSE</button></div><div class="theme-body"><div class="theme-layout"><main><section class="theme-panel"><div class="section-head"><span>FULL UI THEMES</span><span>LIVE PREVIEW</span></div><div id="uiThemeGrid" class="theme-grid"></div></section><section class="theme-panel"><div class="section-head"><span>MESSENGER BACKGROUND</span><span>PRESETS</span></div><div id="msgBgGrid" class="bg-grid"></div><div class="color-pair"><div><label>CUSTOM COLOR 1</label><input id="bgColor1" type="color" onchange="customMessengerBg()"></div><div><label>CUSTOM COLOR 2</label><input id="bgColor2" type="color" onchange="customMessengerBg()"></div></div><label>GRADIENT DIRECTION</label><select id="bgDirection" onchange="customMessengerBg()"><option value="135deg">DIAGONAL</option><option value="90deg">HORIZONTAL</option><option value="180deg">VERTICAL</option><option value="45deg">REVERSE DIAGONAL</option></select><label>PATTERN</label><select id="bgPattern" onchange="updateStudioControls()"><option value="none">NONE</option><option value="dots">DOTS</option><option value="grid">GRID</option><option value="diagonal">DIAGONAL LINES</option></select><label>BACKGROUND STRENGTH</label><div class="range-line"><input id="bgStrength" type="range" min="20" max="100" oninput="updateStudioControls()"><span id="bgStrengthValue"></span></div><label>MESSAGE CARD OPACITY</label><div class="range-line"><input id="cardStrength" type="range" min="5" max="95" oninput="updateStudioControls()"><span id="cardStrengthValue"></span></div><label>GLASS BLUR</label><div class="range-line"><input id="cardBlur" type="range" min="0" max="16" oninput="updateStudioControls()"><span id="cardBlurValue"></span></div></section></main><aside><section class="theme-panel"><div class="section-head"><span>PERSONALIZE UI</span><span>LOCAL</span></div><label>ACCENT COLOR</label><input id="accentColor" type="color" onchange="setAccentColor(this.value)" style="height:48px"><div class="control-row"><div>CUSTOM ACCENT<div class="settings-note">Apply chosen accent to UI</div></div><button id="accentSwitch" class="toggle" onclick="toggleLook('accent')"></button></div><div class="control-row"><div>FULL 3D UI<div class="settings-note">Raised cards and controls</div></div><button id="depthSwitch" class="toggle" onclick="toggleLook('depth')"></button></div><button class="cmd-btn" style="width:100%;margin-top:12px" onclick="closeThemeStudio()">APPLY & CLOSE</button><button class="cmd-btn danger-btn" style="width:100%;margin-top:7px" onclick="resetThemeStudio()">RESET ALL APPEARANCE</button></section></aside></div></div></div>
 <div id="modalWrap" class="modal-wrap" onclick="backdropClose(event)">
   <div class="modal">
     <div class="modal-head"><strong id="modalTitle">CREATE</strong><button class="icon-btn" onclick="closeModal()">[X]</button></div>
@@ -432,6 +439,7 @@ let activeChannel = 'hr';
 let activeTab = 'tasks';
 let selectedAttachments = [];
 let preferences = JSON.parse(localStorage.getItem('autofab_preferences') || 'null') || {name:'ADMIN-HR', compact:false, scan:true, sound:true};
+let look=JSON.parse(localStorage.getItem('autofab_look')||'null')||{theme:'terminal',accent:'#35ff67',useAccent:false,depth:true,bg:'terminal',c1:'#061006',c2:'#020702',direction:'135deg',pattern:'none',opacity:95,cardOpacity:28,blur:0};
 let fileHistory = JSON.parse(localStorage.getItem('autofab_file_history') || '[]');
 let messageHistory = JSON.parse(localStorage.getItem('autofab_message_history') || '[]');
 let customFeature = JSON.parse(localStorage.getItem('autofab_custom_feature') || 'null') || {name:'',html:'',css:'',js:''};
@@ -523,20 +531,45 @@ function sendMessage(){
 }
 function composerKey(e){ if(e.key==='Enter'&&e.ctrlKey){e.preventDefault();sendMessage()} }
 async function selectFile(input){
-  const chosen=[...input.files]; if(!chosen.length)return;
-  for(const f of chosen){
-    const id='file-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-    await storeFile(id,f);
-    selectedAttachments.push({id,name:f.name,size:(f.size/1024<1024?(f.size/1024).toFixed(1)+' KB':(f.size/1048576).toFixed(1)+' MB'),type:f.type||'application/octet-stream'});
+  const chosen=[...input.files];
+  if(!chosen.length)return;
+  filePreview.textContent='UPLOADING: '+chosen.map(f=>f.name).join(' | ');
+  filePreview.style.display='block';
+  try{
+    for(const f of chosen){
+      const form=new FormData();
+      form.append('file',f);
+      const response=await fetch(api('/api/files'),{method:'POST',body:form});
+      if(!response.ok)throw new Error(await response.text());
+      const uploaded=await response.json();
+      selectedAttachments.push({
+        id:uploaded.id,
+        name:uploaded.name,
+        size:(uploaded.bytes/1024<1024?(uploaded.bytes/1024).toFixed(1)+' KB':(uploaded.bytes/1048576).toFixed(1)+' MB'),
+        type:uploaded.type||'application/octet-stream',
+        server:true
+      });
+    }
+    filePreview.textContent='READY: '+selectedAttachments.map(f=>f.name+' ('+f.size+')').join(' | ');
+  }catch(error){
+    console.error(error);
+    filePreview.textContent='UPLOAD FAILED. CHECK SERVER CONNECTION.';
+    alert('File upload failed. Make sure the server is running and try again.');
   }
-  filePreview.textContent='READY: '+selectedAttachments.map(f=>f.name+' ('+f.size+')').join(' | '); filePreview.style.display='block'; input.value='';
+  input.value='';
 }
 function openFileDB(){ return new Promise((resolve,reject)=>{const q=indexedDB.open('AutofabTerminalFiles',1);q.onupgradeneeded=()=>q.result.createObjectStore('files');q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);}); }
 async function storeFile(id,file){ const db=await openFileDB(); return new Promise((resolve,reject)=>{const tx=db.transaction('files','readwrite');tx.objectStore('files').put(file,id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);}); }
 async function getFile(id){ const db=await openFileDB(); return new Promise((resolve,reject)=>{const q=db.transaction('files').objectStore('files').get(id);q.onsuccess=()=>resolve(q.result);q.onerror=()=>reject(q.error);}); }
 async function openAttachment(id,download=false){
-  const blob=await getFile(id); if(!blob){alert('This attachment is not available in this browser.');return}
-  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; if(download)a.download=blob.name||'attachment'; else a.target='_blank'; a.click(); setTimeout(()=>URL.revokeObjectURL(url),60000);
+  if(/^[a-f0-9]{24}$/i.test(id)){
+    const url=api('/api/files/'+encodeURIComponent(id)+(download?'?download=1':''));
+    window.open(url,'_blank','noopener');
+    return;
+  }
+  const blob=await getFile(id);
+  if(!blob){alert('This is an older browser-only attachment. Upload it again after installing the server file update.');return;}
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;if(download)a.download=blob.name||'attachment';else a.target='_blank';a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
 function showTab(tab,btn){ activeTab=tab; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderTab(); }
 function renderTab(){
@@ -640,10 +673,21 @@ function renderChannelAdmin(){
 }
 function saveProfile(){ preferences.name=profileName.value.trim().toUpperCase()||'ADMIN-HR'; save(); applyPreferences(); }
 function toggleSetting(key){ preferences[key]=!preferences[key]; save(); applyPreferences(); }
+const uiThemes=[{id:'terminal',n:'Terminal',c:['#020702','#0a1c0b','#35ff67']},{id:'sunset',n:'Sunset 3D',c:['#321540','#d34b76','#ffbd59']},{id:'ocean',n:'Ocean Depth',c:['#031525','#087c9b','#55f6db']},{id:'anime',n:'Anime Dream',c:['#202758','#64caff','#ff83bf']},{id:'cartoon',n:'Cartoon World',c:['#17377c','#7838ad','#ffe33a']},{id:'glass',n:'Glass Dimension',c:['#071025','#294ed1','#be8dff']},{id:'pastel',n:'Pastel Cloud',c:['#ffd3e8','#ccecff','#835bcc']}];
+const msgBgs=[{id:'terminal',n:'Terminal',v:'linear-gradient(135deg,#061006,#020702)'},{id:'aurora',n:'Aurora',v:'radial-gradient(circle at 15% 20%,#1bd8a7,transparent 35%),linear-gradient(135deg,#111746,#55246f)'},{id:'sunset',n:'Sunset',v:'linear-gradient(135deg,#32104c,#c74771,#ff9d5c)'},{id:'ocean',n:'Ocean',v:'linear-gradient(145deg,#031828,#075472)'},{id:'sakura',n:'Sakura',v:'linear-gradient(135deg,#42213f,#df7da7)'},{id:'cartoon',n:'Cartoon',v:'linear-gradient(135deg,#1951a3,#6f43ad,#ed568b)'},{id:'midnight',n:'Midnight',v:'linear-gradient(145deg,#040713,#121d45)'},{id:'paper',n:'Soft Paper',v:'linear-gradient(135deg,#f7f0df,#dfeedd)'},{id:'custom',n:'Custom',v:'linear-gradient(135deg,#26365f,#773f75)'}];
+function persistLook(){localStorage.setItem('autofab_look',JSON.stringify(look));}
+function openThemeStudio(){closeSettings();themeStudio.classList.add('show');themeStudio.setAttribute('aria-hidden','false');renderThemeStudio();}
+function closeThemeStudio(){themeStudio.classList.remove('show');themeStudio.setAttribute('aria-hidden','true');}
+function renderThemeStudio(){uiThemeGrid.innerHTML=uiThemes.map(t=>`<button class="theme-card ${look.theme===t.id?'active':''}" onclick="chooseUITheme('${t.id}')"><div class="theme-thumb" style="--a:${t.c[0]};--b:${t.c[1]};--c:${t.c[2]}"><div class="mini-top"></div><div class="mini-body"><span></span><span></span></div></div><div class="theme-label"><b>${t.n}</b></div></button>`).join('');msgBgGrid.innerHTML=msgBgs.map(x=>`<button class="bg-card ${look.bg===x.id?'active':''}" style="background:${x.v}" onclick="chooseMsgBg('${x.id}')">${x.n}</button>`).join('');accentColor.value=look.accent;bgColor1.value=look.c1;bgColor2.value=look.c2;bgDirection.value=look.direction;bgPattern.value=look.pattern;bgStrength.value=look.opacity;cardStrength.value=look.cardOpacity;cardBlur.value=look.blur;bgStrengthValue.textContent=look.opacity+'%';cardStrengthValue.textContent=look.cardOpacity+'%';cardBlurValue.textContent=look.blur+'px';accentSwitch.classList.toggle('on',look.useAccent);depthSwitch.classList.toggle('on',look.depth);}
+function chooseUITheme(id){look.theme=id;persistLook();applyLook();renderThemeStudio();}function chooseMsgBg(id){look.bg=id;persistLook();applyLook();renderThemeStudio();}function customMessengerBg(){look.bg='custom';look.c1=bgColor1.value;look.c2=bgColor2.value;look.direction=bgDirection.value;persistLook();applyLook();renderThemeStudio();}function setAccentColor(v){look.accent=v;look.useAccent=true;persistLook();applyLook();renderThemeStudio();}function toggleLook(k){if(k==='accent')look.useAccent=!look.useAccent;if(k==='depth')look.depth=!look.depth;persistLook();applyLook();renderThemeStudio();}
+function updateStudioControls(){look.pattern=bgPattern.value;look.opacity=+bgStrength.value;look.cardOpacity=+cardStrength.value;look.blur=+cardBlur.value;persistLook();applyLook();renderThemeStudio();}
+function patternCSS(){if(look.pattern==='dots')return 'radial-gradient(circle,rgba(255,255,255,.35) 1px,transparent 1.5px)';if(look.pattern==='grid')return 'linear-gradient(rgba(255,255,255,.14) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.14) 1px,transparent 1px)';if(look.pattern==='diagonal')return 'repeating-linear-gradient(135deg,rgba(255,255,255,.13) 0 1px,transparent 1px 13px)';return 'none';}
+function applyLook(){document.body.dataset.theme=look.theme;document.body.style.setProperty('--custom-accent',look.accent);document.body.classList.toggle('custom-accent',look.useAccent);document.body.classList.toggle('ui3d',look.depth);const w=document.querySelector('.workspace');const p=msgBgs.find(x=>x.id===look.bg);w.style.setProperty('--msg-bg',look.bg==='custom'?`linear-gradient(${look.direction},${look.c1},${look.c2})`:(p?.v||msgBgs[0].v));w.style.setProperty('--msg-opacity',look.opacity/100);w.style.setProperty('--card-opacity',look.cardOpacity/100);w.style.setProperty('--card-blur',look.blur+'px');w.style.setProperty('--msg-pattern',patternCSS());w.style.setProperty('--pattern-opacity',look.pattern==='none'?0:.4);}
+function resetThemeStudio(){look={theme:'terminal',accent:'#35ff67',useAccent:false,depth:true,bg:'terminal',c1:'#061006',c2:'#020702',direction:'135deg',pattern:'none',opacity:95,cardOpacity:28,blur:0};persistLook();applyLook();renderThemeStudio();}
 function applyPreferences(){
   document.body.classList.toggle('compact',!!preferences.compact); document.body.classList.toggle('no-scanlines',!preferences.scan);
   compactToggle?.classList.toggle('on',!!preferences.compact); scanToggle?.classList.toggle('on',!!preferences.scan); soundToggle?.classList.toggle('on',!!preferences.sound);
-  const label=document.querySelector('.user-label'); if(label)label.textContent=preferences.name+' [ONLINE]';
+  const label=document.querySelector('.user-label'); if(label)label.textContent=preferences.name+' [ONLINE]';applyLook();
 }
 function exportData(){
   const data={version:'1.7',exportedAt:new Date().toISOString(),channels,messages,tasks,tickets,files,preferences,fileHistory,messageHistory,customFeature,calendarEvents};
@@ -757,6 +801,7 @@ async function loadServerState(silent=false){
 function saveApiSettings(){apiUrl=apiUrlInput.value.trim();localStorage.setItem('autofab_api_url',apiUrl);testServer();}
 
 document.getElementById('search').addEventListener('input',e=>renderMessages(e.target.value));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&themeStudio.classList.contains('show'))closeThemeStudio();});
 setInterval(()=>clock.textContent=new Date().toLocaleString('en-IN',{hour12:false}),1000);
 applyPreferences(); renderChannels(); renderMessages(); renderTab(); mountCustomFeature(); loadServerState(true);
 </script>
