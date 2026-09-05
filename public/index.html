@@ -719,7 +719,7 @@ function playGame(cart) {
 
 function closeGame() {
     document.getElementById('gameWrap').classList.remove('show');
-    document.getElementById('gameIframe').srcdoc = ''; // Instantly kills the game loop and audio
+    document.getElementById('gameIframe').srcdoc = ''; 
 }
 
 document.addEventListener('keydown', e => {
@@ -834,7 +834,6 @@ function exportCurrentTheme() {
     a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-// Mobile Sidebar Toggle
 function toggleSidebar() {
   const sb = document.getElementById('appSidebar');
   const shade = document.getElementById('sidebarShade');
@@ -1019,7 +1018,6 @@ async function clearFileBin(skipConfirm=false){
   try {
     const db=await openFileDB();
     await Promise.all(trash.map(async (f) => {
-      // Deletes the backend physical file if it exists on server
       if(/^[a-f0-9]{24}$/i.test(f.id)) {
         await fetch(api('/api/files/'+f.id), { method: 'DELETE' }).catch(e=>console.error(e));
       }
@@ -1269,11 +1267,12 @@ async function pollServer() {
     setCloud('DB: LOCAL MODE', false);
   }
 }
-setInterval(pollServer, 4000);
+setInterval(pollServer, 1000); // Polls every 1 second for ultra-fast chat/game sync
 
 function saveApiSettings(){apiUrl=document.getElementById('apiUrlInput').value.trim();localStorage.setItem('autofab_api_url',apiUrl);testServer();}
 
 document.getElementById('search').addEventListener('input',e=>renderMessages(e.target.value));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('themeStudio').classList.contains('show'))closeThemeStudio();});
 setInterval(()=>{const el=document.getElementById('clock'); if(el) el.textContent=new Date().toLocaleString('en-IN',{hour12:false});},1000);
 applyPreferences(); renderChannels(); renderMessages(); renderTab(); mountCustomFeature(); loadServerState(true);
 </script>
