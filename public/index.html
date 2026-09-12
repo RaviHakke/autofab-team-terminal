@@ -881,7 +881,7 @@ function save(){
   localStorage.setItem('autofab_message_history',JSON.stringify(messageHistory));
   localStorage.setItem('autofab_custom_feature',JSON.stringify(customFeature));
   localStorage.setItem('autofab_calendar_events',JSON.stringify(calendarEvents));
-  if(!isApplyingServerState){ clearTimeout(syncTimer); syncTimer=setTimeout(pushState,700); }
+  if(!isApplyingServerState){ clearTimeout(syncTimer); syncTimer=setTimeout(pushState,100); }
 }
 function esc(s=''){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function renderChannels(){
@@ -967,7 +967,7 @@ function sendMessage(){
     m.files=selectedAttachments.map(f=>({id:f.id,name:f.name,size:f.size,type:f.type}));
     selectedAttachments.forEach(f=>{files.unshift({id:f.id,name:f.name,size:f.size,type:f.type,channel:activeChannel,time:now(),deleted:false,deletedAt:null});addFileHistory('UPLOADED',f.name);});
   }
-  messages[activeChannel].push(m); input.innerHTML=''; selectedAttachments=[]; document.getElementById('filePreview').style.display='none'; save(); renderMessages(); renderTab();
+  messages[activeChannel].push(m); input.innerHTML=''; selectedAttachments=[]; document.getElementById('filePreview').style.display='none'; save(); pushState(); renderMessages(); renderTab();
   const messagesEl = document.getElementById('messages');
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
@@ -1268,34 +1268,46 @@ async function loadServerState(silent=false){
   }catch(e){isApplyingServerState=false;setCloud('DB: LOCAL MODE',false);if(!silent)alert('Server data could not be loaded.');}
 }
 
-// REAL-TIME AUTO-POLLING LOGIC
+// REAL-TIME MESSAGE SYNC
+// Works with a blank API URL (same server) or a custom backend URL.
+let pollBusy = false;
+let lastServerMessageSignature = '';
 async function pollServer() {
-  if (!apiUrl) return;
+  if (pollBusy || document.hidden) return;
+  pollBusy = true;
   try {
-    const r = await fetch(api('/api/state'));
-    if (!r.ok) return;
+    const r = await fetch(api('/api/state') + '?_=' + Date.now(), {cache:'no-store'});
+    if (!r.ok) throw new Error('State request failed');
     const d = await r.json();
     if (!d || !d.state || !d.state.messages) return;
-    
     const serverMsgs = d.state.messages;
-    let needsUpdate = false;
-    
-    if (serverMsgs[activeChannel] && (!messages[activeChannel] || serverMsgs[activeChannel].length > messages[activeChannel].length)) {
-        needsUpdate = true;
+    const signature = JSON.stringify(serverMsgs);
+    const localSignature = JSON.stringify(messages);
+    if (signature !== lastServerMessageSignature && signature !== localSignature) {
+      const oldCounts = {};
+      Object.keys(messages || {}).forEach(id => oldCounts[id] = (messages[id] || []).filter(m => !m.deleted).length);
+      messages = serverMsgs;
+      localStorage.setItem('autofab_messages', JSON.stringify(messages));
+      channels.forEach(c => {
+        if (c.id === activeChannel) return;
+        const newCount = (messages[c.id] || []).filter(m => !m.deleted).length;
+        const added = Math.max(0, newCount - (oldCounts[c.id] || 0));
+        if (added) c.unread = (c.unread || 0) + added;
+      });
+      renderChannels();
+      renderMessages(document.getElementById('search')?.value || '');
+      setCloud('DB: LIVE', true);
     }
-    
-    if (needsUpdate) {
-        messages = serverMsgs;
-        localStorage.setItem('autofab_messages', JSON.stringify(messages));
-        renderMessages();
-        setCloud('DB: SYNCED', true);
-    }
+    lastServerMessageSignature = signature;
   } catch(e) {
     setCloud('DB: LOCAL MODE', false);
+  } finally {
+    pollBusy = false;
   }
 }
-setInterval(pollServer, 1000); // Polls every 1 second for ultra-fast chat/game sync
-
+pollServer();
+setInterval(pollServer, 250);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) pollServer(); });
 function saveApiSettings(){apiUrl=document.getElementById('apiUrlInput').value.trim();localStorage.setItem('autofab_api_url',apiUrl);testServer();}
 
 document.getElementById('search').addEventListener('input',e=>renderMessages(e.target.value));
