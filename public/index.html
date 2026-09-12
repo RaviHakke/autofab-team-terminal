@@ -524,6 +524,13 @@
         </div>
       </section>
       <section class="settings-section">
+        <div class="settings-section-title">RECYCLE BIN</div>
+        <div class="settings-section-body">
+          <button class="cmd-btn" style="width:100%" onclick="openRecycleBin()">OPEN RECYCLE BIN <span id="recycleBinCount"></span></button>
+          <div class="settings-note" style="margin-top:8px">Deleted messages and files are visible only here. Restore them or delete them permanently.</div>
+        </div>
+      </section>
+      <section class="settings-section">
         <div class="settings-section-title">DATA & MAINTENANCE</div>
         <div class="settings-section-body">
           <button class="cmd-btn" style="width:100%;margin-bottom:7px" onclick="exportData()">EXPORT BACKUP (.JSON)</button>
@@ -881,7 +888,7 @@ function save(){
   localStorage.setItem('autofab_message_history',JSON.stringify(messageHistory));
   localStorage.setItem('autofab_custom_feature',JSON.stringify(customFeature));
   localStorage.setItem('autofab_calendar_events',JSON.stringify(calendarEvents));
-  if(!isApplyingServerState){ clearTimeout(syncTimer); syncTimer=setTimeout(pushState,100); }
+  if(!isApplyingServerState){ clearTimeout(syncTimer); syncTimer=setTimeout(pushState,700); }
 }
 function esc(s=''){ return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function renderChannels(){
@@ -924,8 +931,8 @@ function renderMessages(filter=''){
 }
 function messageSummary(m){return String(m.text||m.html?.replace(/<[^>]*>/g,' ')||'[ATTACHMENT]').replace(/\s+/g,' ').trim().slice(0,120);}
 function addMessageHistory(action,m,channel){messageHistory.unshift({action,messageId:m.id,summary:messageSummary(m),channel,author:m.author||'SYSTEM',at:historyTime(),by:preferences.name});if(messageHistory.length>1000)messageHistory.length=1000;}
-function deleteMessage(id){const list=messages[activeChannel]||[];const m=list.find(x=>x.id===id);if(!m||!confirm('Move this message to Message Recycle Bin?'))return;m.deleted=true;m.deletedAt=new Date().toISOString();m.deletedBy=preferences.name;addMessageHistory('MESSAGE DELETED',m,activeChannel);save();renderMessages();renderTab();}
-function restoreMessage(channel,id){const m=(messages[channel]||[]).find(x=>x.id===id);if(!m)return;m.deleted=false;m.deletedAt=null;addMessageHistory('MESSAGE RESTORED',m,channel);save();renderMessages();renderTab();}
+function deleteMessage(id){const list=messages[activeChannel]||[];const m=list.find(x=>x.id===id);if(!m||!confirm('Move this message to Message Recycle Bin?'))return;m.deleted=true;m.deletedAt=new Date().toISOString();m.deletedBy=preferences.name;addMessageHistory('MESSAGE DELETED',m,activeChannel);save();renderMessages();renderTab();updateRecycleBinCount();}
+function restoreMessage(channel,id){const m=(messages[channel]||[]).find(x=>x.id===id);if(!m)return;m.deleted=false;m.deletedAt=null;addMessageHistory('MESSAGE RESTORED',m,channel);save();renderMessages();renderTab();updateRecycleBinCount();}
 function permanentDeleteMessage(channel,id){const list=messages[channel]||[];const m=list.find(x=>x.id===id);if(!m||!confirm('Permanently delete this message? This cannot be undone.'))return;addMessageHistory('MESSAGE PERMANENTLY DELETED',m,channel);messages[channel]=list.filter(x=>x.id!==id);save();renderMessages();renderTab();}
 function now(){ return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',hour12:false}); }
 
@@ -967,7 +974,7 @@ function sendMessage(){
     m.files=selectedAttachments.map(f=>({id:f.id,name:f.name,size:f.size,type:f.type}));
     selectedAttachments.forEach(f=>{files.unshift({id:f.id,name:f.name,size:f.size,type:f.type,channel:activeChannel,time:now(),deleted:false,deletedAt:null});addFileHistory('UPLOADED',f.name);});
   }
-  messages[activeChannel].push(m); input.innerHTML=''; selectedAttachments=[]; document.getElementById('filePreview').style.display='none'; save(); pushState(); renderMessages(); renderTab();
+  messages[activeChannel].push(m); input.innerHTML=''; selectedAttachments=[]; document.getElementById('filePreview').style.display='none'; save(); renderMessages(); renderTab();
   const messagesEl = document.getElementById('messages');
   messagesEl.scrollTop = messagesEl.scrollHeight;
 }
@@ -1020,24 +1027,41 @@ function renderTab(){
   if(activeTab==='tasks') box.innerHTML=tasks.map(x=>`<div class="card"><div class="card-top"><span class="card-id">${esc(x.id)}</span><span class="tag ${x.priority.toLowerCase()}">${esc(x.priority)}</span></div><div class="card-title">${esc(x.title)}</div><div class="card-meta">ASSIGNED: ${esc(x.assignee)}<br>DUE: ${esc(x.due)}</div></div>`).join('')||'<div class="empty">NO TASKS</div>';
   if(activeTab==='tickets') box.innerHTML=tickets.map(x=>`<div class="card"><div class="card-top"><span class="card-id">${esc(x.id)}</span><span class="tag medium">${esc(x.status)}</span></div><div class="card-title">${esc(x.title)}</div><div class="card-meta">DEPARTMENT: ${esc(x.dept)}</div></div>`).join('')||'<div class="empty">NO TICKETS</div>';
   if(activeTab==='files'){
-    const live=files.filter(x=>!x.deleted), trash=files.filter(x=>x.deleted);
+    const live=files.filter(x=>!x.deleted);
     box.innerHTML='<div class="section-head"><span>ACTIVE FILES</span><span>'+live.length+'</span></div>'+live.map(fileCard).join('')+
-      (live.length?'':'<div class="empty">NO ACTIVE FILES</div>')+
-      '<div class="section-head" style="margin-top:18px"><span>RECYCLE BIN</span><span>'+trash.length+'</span></div><div class="bin-actions"><button class="cmd-btn danger-btn" onclick="clearFileBin()">CLEAR FILE BIN</button><button class="cmd-btn danger-btn" onclick="clearAllBins()">CLEAR ALL BINS</button></div>'+trash.map(recycleCard).join('')+
-      (trash.length?'':'<div class="empty">RECYCLE BIN EMPTY</div>');
+      (live.length?'':'<div class="empty">NO ACTIVE FILES</div>');
   }
   if(activeTab==='history'){
-    ensureMessageIds();
-    const deleted=Object.entries(messages).flatMap(([channel,list])=>list.filter(m=>m.deleted).map(m=>({channel,m})));
     const audit=[...fileHistory.map(h=>({...h,kind:'FILE',label:h.name})),...messageHistory.map(h=>({...h,kind:'MESSAGE',label:h.summary}))].sort((a,b)=>String(b.at).localeCompare(String(a.at)));
-    box.innerHTML=`<div class="section-head"><span>MESSAGE RECYCLE BIN</span><span>${deleted.length}</span></div><div class="bin-actions"><button class="cmd-btn danger-btn" onclick="clearMessageBin()">CLEAR MESSAGE BIN</button><button class="cmd-btn danger-btn" onclick="clearAllBins()">CLEAR ALL BINS</button></div>`+
-      (deleted.map(x=>`<div class="recycled-message"><div class="card-id">#${esc(x.channel.toUpperCase())} | ${esc(x.m.author||'SYSTEM')}</div><div class="card-title">${esc(messageSummary(x.m))}</div><div class="card-meta">DELETED BY: ${esc(x.m.deletedBy||'UNKNOWN')}</div><div class="file-actions"><button class="file-link" onclick="restoreMessage('${x.channel}','${x.m.id}')">RESTORE</button><button class="file-link danger-btn" onclick="permanentDeleteMessage('${x.channel}','${x.m.id}')">DELETE FOREVER</button></div></div>`).join('')||'<div class="empty">MESSAGE RECYCLE BIN EMPTY</div>')+
-      `<div class="section-head" style="margin-top:18px"><span>COMPLETE AUDIT HISTORY</span><span>${audit.length}</span></div>`+
+    box.innerHTML=`<div class="section-head"><span>COMPLETE AUDIT HISTORY</span><span>${audit.length}</span></div>`+
       (audit.map(h=>`<div class="history-line"><b>[${esc(h.kind)}] ${esc(h.action)}</b> ${esc(h.label||'')}<small>${esc(h.at)} | BY: ${esc(h.by||'')} ${h.channel?'| #'+esc(h.channel.toUpperCase()):''}</small></div>`).join('')||'<div class="empty">NO AUDIT HISTORY</div>');
   }
   document.getElementById('taskCount').textContent=String(tasks.length).padStart(2,'0'); document.getElementById('ticketCount').textContent=String(tickets.length).padStart(2,'0');
 }
 
+function recycleBinTotal(){
+  return files.filter(x=>x.deleted).length + Object.values(messages).flat().filter(m=>m.deleted).length;
+}
+function updateRecycleBinCount(){
+  const el=document.getElementById('recycleBinCount');
+  if(el) el.textContent='('+recycleBinTotal()+')';
+}
+function openRecycleBin(){
+  closeSettings();
+  ensureMessageIds();
+  const deletedMessages=Object.entries(messages).flatMap(([channel,list])=>list.filter(m=>m.deleted).map(m=>({channel,m})));
+  const deletedFiles=files.filter(x=>x.deleted);
+  document.getElementById('modalTitle').textContent='RECYCLE BIN';
+  document.getElementById('modalBody').innerHTML=
+    `<div class="section-head"><span>DELETED MESSAGES</span><span>${deletedMessages.length}</span></div>`+
+    `<div class="bin-actions"><button class="cmd-btn danger-btn" onclick="clearMessageBin();openRecycleBin()">CLEAR MESSAGE BIN</button></div>`+
+    (deletedMessages.map(x=>`<div class="recycled-message"><div class="card-id">#${esc(x.channel.toUpperCase())} | ${esc(x.m.author||'SYSTEM')}</div><div class="card-title">${esc(messageSummary(x.m))}</div><div class="card-meta">DELETED BY: ${esc(x.m.deletedBy||'UNKNOWN')}</div><div class="file-actions"><button class="file-link" onclick="restoreMessage('${x.channel}','${x.m.id}');openRecycleBin()">RESTORE</button><button class="file-link danger-btn" onclick="permanentDeleteMessage('${x.channel}','${x.m.id}');openRecycleBin()">DELETE FOREVER</button></div></div>`).join('')||'<div class="empty">MESSAGE RECYCLE BIN EMPTY</div>')+
+    `<div class="section-head" style="margin-top:18px"><span>DELETED FILES</span><span>${deletedFiles.length}</span></div>`+
+    `<div class="bin-actions"><button class="cmd-btn danger-btn" onclick="clearFileBin().then(openRecycleBin)">CLEAR FILE BIN</button><button class="cmd-btn danger-btn" onclick="clearAllBins().then(openRecycleBin)">CLEAR ALL BINS</button></div>`+
+    (deletedFiles.map(recycleCard).join('')||'<div class="empty">FILE RECYCLE BIN EMPTY</div>');
+  document.getElementById('modalWrap').classList.add('show');
+  document.getElementById('modalWrap').dataset.type='recycle';
+}
 async function clearFileBin(skipConfirm=false){
   const trash=files.filter(x=>x.deleted);if(!trash.length){if(!skipConfirm)alert('File Recycle Bin is already empty.');return true;}
   if(!skipConfirm&&!confirm(`Permanently delete all ${trash.length} recycled file(s)? This cannot be undone.`))return false;
@@ -1115,7 +1139,7 @@ function syncTabButtons(){ document.querySelectorAll('.tab-btn').forEach((b,i)=>
 function clearChannel(){ if(confirm('Clear messages in this activity channel?')){messages[activeChannel]=[{type:'system',text:'[SYSTEM] Channel view cleared by ADMIN-HR.'}];save();renderMessages();} }
 
 function openSettings(){
-  document.getElementById('profileName').value=preferences.name; document.getElementById('apiUrlInput').value=apiUrl; document.getElementById('settingsShade').classList.add('show'); renderChannelAdmin(); applyPreferences();
+  document.getElementById('profileName').value=preferences.name; document.getElementById('apiUrlInput').value=apiUrl; document.getElementById('settingsShade').classList.add('show'); renderChannelAdmin(); applyPreferences(); updateRecycleBinCount();
 }
 function closeSettings(){ document.getElementById('settingsShade').classList.remove('show'); }
 function settingsBackdrop(e){ if(e.target===document.getElementById('settingsShade'))closeSettings(); }
@@ -1268,46 +1292,34 @@ async function loadServerState(silent=false){
   }catch(e){isApplyingServerState=false;setCloud('DB: LOCAL MODE',false);if(!silent)alert('Server data could not be loaded.');}
 }
 
-// REAL-TIME MESSAGE SYNC
-// Works with a blank API URL (same server) or a custom backend URL.
-let pollBusy = false;
-let lastServerMessageSignature = '';
+// REAL-TIME AUTO-POLLING LOGIC
 async function pollServer() {
-  if (pollBusy || document.hidden) return;
-  pollBusy = true;
+  if (!apiUrl) return;
   try {
-    const r = await fetch(api('/api/state') + '?_=' + Date.now(), {cache:'no-store'});
-    if (!r.ok) throw new Error('State request failed');
+    const r = await fetch(api('/api/state'));
+    if (!r.ok) return;
     const d = await r.json();
     if (!d || !d.state || !d.state.messages) return;
+    
     const serverMsgs = d.state.messages;
-    const signature = JSON.stringify(serverMsgs);
-    const localSignature = JSON.stringify(messages);
-    if (signature !== lastServerMessageSignature && signature !== localSignature) {
-      const oldCounts = {};
-      Object.keys(messages || {}).forEach(id => oldCounts[id] = (messages[id] || []).filter(m => !m.deleted).length);
-      messages = serverMsgs;
-      localStorage.setItem('autofab_messages', JSON.stringify(messages));
-      channels.forEach(c => {
-        if (c.id === activeChannel) return;
-        const newCount = (messages[c.id] || []).filter(m => !m.deleted).length;
-        const added = Math.max(0, newCount - (oldCounts[c.id] || 0));
-        if (added) c.unread = (c.unread || 0) + added;
-      });
-      renderChannels();
-      renderMessages(document.getElementById('search')?.value || '');
-      setCloud('DB: LIVE', true);
+    let needsUpdate = false;
+    
+    if (serverMsgs[activeChannel] && (!messages[activeChannel] || serverMsgs[activeChannel].length > messages[activeChannel].length)) {
+        needsUpdate = true;
     }
-    lastServerMessageSignature = signature;
+    
+    if (needsUpdate) {
+        messages = serverMsgs;
+        localStorage.setItem('autofab_messages', JSON.stringify(messages));
+        renderMessages();
+        setCloud('DB: SYNCED', true);
+    }
   } catch(e) {
     setCloud('DB: LOCAL MODE', false);
-  } finally {
-    pollBusy = false;
   }
 }
-pollServer();
-setInterval(pollServer, 250);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) pollServer(); });
+setInterval(pollServer, 1000); // Polls every 1 second for ultra-fast chat/game sync
+
 function saveApiSettings(){apiUrl=document.getElementById('apiUrlInput').value.trim();localStorage.setItem('autofab_api_url',apiUrl);testServer();}
 
 document.getElementById('search').addEventListener('input',e=>renderMessages(e.target.value));
