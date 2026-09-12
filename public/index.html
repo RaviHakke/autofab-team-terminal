@@ -58,7 +58,7 @@
     .top-actions { display: flex; align-items: center; gap: 8px; }
     .status-dot { width: 8px; height: 8px; display: inline-block; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
     
-    .main { min-height: 0; display: grid; grid-template-columns: 245px minmax(400px, 1fr) 330px; }
+    .main { min-height: 0; display: grid; grid-template-columns: 245px minmax(400px, 1fr) 112px; }
     .sidebar, .rightbar, .workspace { min-height: 0; }
     .sidebar { border-right: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; }
     .side-scroll { overflow-y: auto; padding: 10px; }
@@ -124,7 +124,16 @@
     .hint { color: var(--dim); font-size: 10px; margin-top: 5px; }
     
     .rightbar { border-left: 1px solid var(--line); background: var(--panel); display: grid; grid-template-rows: auto 1fr; }
-    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; padding: 10px; border-bottom: 1px solid var(--line); }
+    .stats { display:flex; flex-direction:column; align-items:center; gap:8px; padding:8px 5px; border-bottom:0; }
+    .rightbar .tabs { display:none !important; }
+    .stat { width:92px; height:52px; min-width:0; min-height:0; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:2px; padding:5px 7px; text-align:center; cursor:pointer; appearance:none; color:var(--green); border-radius:16px !important; }
+    .stat:hover, .stat:focus-visible { border-color:var(--green); background:var(--msg-hover); outline:none; }
+    .stat strong { order:1; font-size:16px !important; line-height:1; }
+    .stat span { order:2; display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px !important; }
+    .right-info { line-height:1.6; }
+    .right-info-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:12px; }
+    .right-info-item { border:1px solid var(--line); background:var(--panel-2); padding:10px; }
+    .right-info-item b { display:block; color:var(--green-soft); margin-bottom:4px; }
     .stat { border: 1px solid var(--line); padding: 9px; background: var(--panel-2); border-radius: var(--ui-radius); }
     .stat strong { display: block; font-size: 22px; }
     .stat span { color: var(--dim); font-size: 10px; }
@@ -442,10 +451,10 @@
 
     <aside class="rightbar">
       <div class="stats">
-        <div class="stat"><strong id="taskCount">03</strong><span>OPEN TASKS</span></div>
-        <div class="stat"><strong id="ticketCount">02</strong><span>OPEN TICKETS</span></div>
-        <div class="stat"><strong>08</strong><span>ONLINE USERS</span></div>
-        <div class="stat"><strong id="messageCount">00</strong><span>MESSAGES</span></div>
+        <button class="stat" onclick="showRightInfo('tasks')" title="View task information"><strong id="taskCount">03</strong><span>TASKS</span></button>
+        <button class="stat" onclick="showRightInfo('tickets')" title="View ticket information"><strong id="ticketCount">02</strong><span>TICKETS</span></button>
+        <button class="stat" onclick="showRightInfo('users')" title="View online user information"><strong>08</strong><span>ONLINE</span></button>
+        <button class="stat" onclick="showRightInfo('messages')" title="View message information"><strong id="messageCount">00</strong><span>MSGS</span></button>
       </div>
       <div class="tabs">
         <div class="tab-buttons">
@@ -1021,6 +1030,28 @@ async function openAttachment(id,download=false){
   if(!blob){alert('This is an older browser-only attachment. Upload it again after installing the server file update.');return;}
   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;if(download)a.download=blob.name||'attachment';else a.target='_blank';a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);
 }
+function showRightInfo(type){
+  const liveTasks=tasks.filter(x=>!x.deleted), liveTickets=tickets.filter(x=>!x.deleted);
+  const activeMessages=Object.values(messages).flat().filter(m=>!m.deleted);
+  const info={
+    tasks:{title:'TASK INFORMATION',summary:`${liveTasks.length} active task(s).`,items:liveTasks.map(x=>`<div class="right-info-item"><b>${esc(x.id)} | ${esc(x.priority)}</b>${esc(x.title)}<div class="settings-note">Assigned: ${esc(x.assignee)} | Due: ${esc(x.due)}</div><div class="file-actions"><button class="file-link danger-btn" onclick="deleteTask('${x.id}');showRightInfo('tasks')">DELETE</button></div></div>`).join('')||'<div class="empty">NO ACTIVE TASKS</div>'},
+    tickets:{title:'TICKET INFORMATION',summary:`${liveTickets.length} active ticket(s).`,items:liveTickets.map(x=>`<div class="right-info-item"><b>${esc(x.id)} | ${esc(x.status)}</b>${esc(x.title)}<div class="settings-note">Department: ${esc(x.dept)}</div><div class="file-actions"><button class="file-link danger-btn" onclick="deleteTicket('${x.id}');showRightInfo('tickets')">DELETE</button></div></div>`).join('')||'<div class="empty">NO ACTIVE TICKETS</div>'},
+    users:{title:'ONLINE USER INFORMATION',summary:'Current online-user indicator for the team terminal.',items:'<div class="right-info-item"><b>08 USERS ONLINE</b>The detailed presence list will appear here when the server provides per-user presence data.</div>'},
+    messages:{title:'MESSAGE INFORMATION',summary:`${activeMessages.length} active message(s) across ${channels.length} channel(s).`,items:channels.map(c=>`<div class="right-info-item"><b># ${esc(c.name)}</b>${(messages[c.id]||[]).filter(m=>!m.deleted).length} active message(s)</div>`).join('')}
+  }[type];
+  if(!info)return;
+  document.getElementById('modalTitle').textContent=info.title;
+  document.getElementById('modalBody').innerHTML=`<div class="right-info"><div class="card-meta">${esc(info.summary)}</div><div class="right-info-grid">${info.items}</div><div class="modal-actions"><button class="cmd-btn" onclick="closeModal()">CLOSE</button></div></div>`;
+  document.getElementById('modalWrap').classList.add('show');
+  document.getElementById('modalWrap').dataset.type='right-info';
+}
+function deleteTask(id){const x=tasks.find(v=>v.id===id);if(!x||!confirm(`Move ${x.id} to Recycle Bin?`))return;x.deleted=true;x.deletedAt=historyTime();x.deletedBy=preferences.name;save();renderTab();updateRecycleBinCount();}
+function deleteTicket(id){const x=tickets.find(v=>v.id===id);if(!x||!confirm(`Move ${x.id} to Recycle Bin?`))return;x.deleted=true;x.deletedAt=historyTime();x.deletedBy=preferences.name;save();renderTab();updateRecycleBinCount();}
+function restoreRecord(kind,id){const list=kind==='task'?tasks:tickets;const x=list.find(v=>v.id===id);if(!x)return;x.deleted=false;x.deletedAt=null;x.deletedBy=null;save();renderTab();updateRecycleBinCount();}
+function permanentDeleteRecord(kind,id){const list=kind==='task'?tasks:tickets;const x=list.find(v=>v.id===id);if(!x||!confirm(`Permanently delete ${id}? This cannot be undone.`))return;const i=list.indexOf(x);list.splice(i,1);save();renderTab();updateRecycleBinCount();}
+function deleteHistory(kind,index){const list=kind==='file'?fileHistory:messageHistory;const h=list[index];if(!h||!confirm('Move this history entry to Recycle Bin?'))return;h.deleted=true;h.deletedAt=historyTime();h.deletedBy=preferences.name;save();renderTab();updateRecycleBinCount();}
+function restoreHistory(kind,index){const list=kind==='file'?fileHistory:messageHistory;const h=list[index];if(!h)return;h.deleted=false;h.deletedAt=null;h.deletedBy=null;save();renderTab();updateRecycleBinCount();}
+function permanentDeleteHistory(kind,index){const list=kind==='file'?fileHistory:messageHistory;if(!list[index]||!confirm('Permanently delete this history entry?'))return;list.splice(index,1);save();renderTab();updateRecycleBinCount();}
 function showTab(tab,btn){ activeTab=tab; document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderTab(); }
 function renderTab(){
   const box=document.getElementById('tabContent');
@@ -1032,15 +1063,15 @@ function renderTab(){
       (live.length?'':'<div class="empty">NO ACTIVE FILES</div>');
   }
   if(activeTab==='history'){
-    const audit=[...fileHistory.map(h=>({...h,kind:'FILE',label:h.name})),...messageHistory.map(h=>({...h,kind:'MESSAGE',label:h.summary}))].sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+    const audit=[...fileHistory.map((h,index)=>({...h,kind:'FILE',source:'file',index,label:h.name})),...messageHistory.map((h,index)=>({...h,kind:'MESSAGE',source:'message',index,label:h.summary}))].filter(h=>!h.deleted).sort((a,b)=>String(b.at).localeCompare(String(a.at)));
     box.innerHTML=`<div class="section-head"><span>COMPLETE AUDIT HISTORY</span><span>${audit.length}</span></div>`+
-      (audit.map(h=>`<div class="history-line"><b>[${esc(h.kind)}] ${esc(h.action)}</b> ${esc(h.label||'')}<small>${esc(h.at)} | BY: ${esc(h.by||'')} ${h.channel?'| #'+esc(h.channel.toUpperCase()):''}</small></div>`).join('')||'<div class="empty">NO AUDIT HISTORY</div>');
+      (audit.map(h=>`<div class="history-line"><b>[${esc(h.kind)}] ${esc(h.action)}</b> ${esc(h.label||'')}<small>${esc(h.at)} | BY: ${esc(h.by||'')} ${h.channel?'| #'+esc(h.channel.toUpperCase()):''}</small><div class="file-actions"><button class="file-link danger-btn" onclick="deleteHistory('${h.source}',${h.index});renderTab()">DELETE</button></div></div>`).join('')||'<div class="empty">NO AUDIT HISTORY</div>');
   }
-  document.getElementById('taskCount').textContent=String(tasks.length).padStart(2,'0'); document.getElementById('ticketCount').textContent=String(tickets.length).padStart(2,'0');
+  document.getElementById('taskCount').textContent=String(tasks.filter(x=>!x.deleted).length).padStart(2,'0'); document.getElementById('ticketCount').textContent=String(tickets.filter(x=>!x.deleted).length).padStart(2,'0');
 }
 
 function recycleBinTotal(){
-  return files.filter(x=>x.deleted).length + Object.values(messages).flat().filter(m=>m.deleted).length;
+  return files.filter(x=>x.deleted).length + Object.values(messages).flat().filter(m=>m.deleted).length + tasks.filter(x=>x.deleted).length + tickets.filter(x=>x.deleted).length + fileHistory.filter(x=>x.deleted).length + messageHistory.filter(x=>x.deleted).length;
 }
 function updateRecycleBinCount(){
   const el=document.getElementById('recycleBinCount');
@@ -1053,6 +1084,12 @@ function openRecycleBin(){
   const deletedFiles=files.filter(x=>x.deleted);
   document.getElementById('modalTitle').textContent='RECYCLE BIN';
   document.getElementById('modalBody').innerHTML=
+    `<div class="section-head"><span>DELETED TASKS</span><span>${tasks.filter(x=>x.deleted).length}</span></div>`+
+    (tasks.filter(x=>x.deleted).map(x=>`<div class="recycled-message"><b>${esc(x.id)}</b> ${esc(x.title)}<div class="file-actions"><button class="file-link" onclick="restoreRecord('task','${x.id}');openRecycleBin()">RESTORE</button><button class="file-link danger-btn" onclick="permanentDeleteRecord('task','${x.id}');openRecycleBin()">DELETE FOREVER</button></div></div>`).join('')||'<div class="empty">NO DELETED TASKS</div>')+
+    `<div class="section-head"><span>DELETED TICKETS</span><span>${tickets.filter(x=>x.deleted).length}</span></div>`+
+    (tickets.filter(x=>x.deleted).map(x=>`<div class="recycled-message"><b>${esc(x.id)}</b> ${esc(x.title)}<div class="file-actions"><button class="file-link" onclick="restoreRecord('ticket','${x.id}');openRecycleBin()">RESTORE</button><button class="file-link danger-btn" onclick="permanentDeleteRecord('ticket','${x.id}');openRecycleBin()">DELETE FOREVER</button></div></div>`).join('')||'<div class="empty">NO DELETED TICKETS</div>')+
+    `<div class="section-head"><span>DELETED HISTORY</span><span>${fileHistory.filter(x=>x.deleted).length+messageHistory.filter(x=>x.deleted).length}</span></div>`+
+    ([...fileHistory.map((h,index)=>({h,index,kind:'file'})),...messageHistory.map((h,index)=>({h,index,kind:'message'}))].filter(x=>x.h.deleted).map(x=>`<div class="recycled-message">${esc(x.h.name||x.h.summary||x.h.action||'History entry')}<div class="file-actions"><button class="file-link" onclick="restoreHistory('${x.kind}',${x.index});openRecycleBin()">RESTORE</button><button class="file-link danger-btn" onclick="permanentDeleteHistory('${x.kind}',${x.index});openRecycleBin()">DELETE FOREVER</button></div></div>`).join('')||'<div class="empty">NO DELETED HISTORY</div>')+
     `<div class="section-head"><span>DELETED MESSAGES</span><span>${deletedMessages.length}</span></div>`+
     `<div class="bin-actions"><button class="cmd-btn danger-btn" onclick="clearMessageBin();openRecycleBin()">CLEAR MESSAGE BIN</button></div>`+
     (deletedMessages.map(x=>`<div class="recycled-message"><div class="card-id">#${esc(x.channel.toUpperCase())} | ${esc(x.m.author||'SYSTEM')}</div><div class="card-title">${esc(messageSummary(x.m))}</div><div class="card-meta">DELETED BY: ${esc(x.m.deletedBy||'UNKNOWN')}</div><div class="file-actions"><button class="file-link" onclick="restoreMessage('${x.channel}','${x.m.id}');openRecycleBin()">RESTORE</button><button class="file-link danger-btn" onclick="permanentDeleteMessage('${x.channel}','${x.m.id}');openRecycleBin()">DELETE FOREVER</button></div></div>`).join('')||'<div class="empty">MESSAGE RECYCLE BIN EMPTY</div>')+
