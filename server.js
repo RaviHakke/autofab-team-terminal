@@ -140,6 +140,12 @@ app.delete('/api/files/:id', async (req, res) => {
   }
 });
 
+// Computer registration and live presence
+const PRESENCE_TIMEOUT_MS=15000;
+app.post('/api/presence',async(req,res)=>{try{const deviceId=String(req.body.deviceId||'').trim(),name=String(req.body.name||'').trim().slice(0,60);if(!deviceId||!name)return res.status(400).json({error:'deviceId and name are required.'});const now=new Date();await database.collection('computer_presence').updateOne({deviceId},{$set:{name,online:req.body.online!==false,lastSeen:now,updatedAt:now},$setOnInsert:{registeredAt:now}},{upsert:true});res.json({ok:true});}catch(error){res.status(500).json({error:'Unable to update presence.'});}});
+app.post('/api/presence/offline',express.text({type:'application/json',limit:'20kb'}),async(req,res)=>{try{const body=typeof req.body==='string'?JSON.parse(req.body||'{}'):req.body,deviceId=String(body.deviceId||'').trim();if(deviceId)await database.collection('computer_presence').updateOne({deviceId},{$set:{online:false,lastSeen:new Date()}});res.json({ok:true});}catch(e){res.status(400).json({error:'Invalid request.'});}});
+app.get('/api/presence',async(req,res)=>{try{const cutoff=new Date(Date.now()-PRESENCE_TIMEOUT_MS);await database.collection('computer_presence').updateMany({lastSeen:{$lt:cutoff},online:true},{$set:{online:false}});res.json(await database.collection('computer_presence').find({},{projection:{_id:0}}).sort({online:-1,name:1}).toArray());}catch(error){res.status(500).json({error:'Unable to load presence.'});}});
+
 // Normalized Data Architecture
 app.get('/api/state', async (req, res) => {
   try {

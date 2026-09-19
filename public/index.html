@@ -384,7 +384,7 @@
       <button class="icon-btn" onclick="openSettings()" title="Settings">[⚙]</button>
       <input id="search" class="search-box" placeholder="SEARCH MESSAGES...">
       <span id="cloudState" class="cloud-state">DB: CHECKING</span><span class="status-dot"></span>
-      <span class="user-label">ADMIN-HR [ONLINE]</span>
+      <span id="currentUserLabel" class="user-label">REGISTERING...</span>
     </div>
   </header>
 
@@ -453,7 +453,7 @@
       <div class="stats">
         <button class="stat" onclick="showRightInfo('tasks')" title="View task information"><strong id="taskCount">03</strong><span>TASKS</span></button>
         <button class="stat" onclick="showRightInfo('tickets')" title="View ticket information"><strong id="ticketCount">02</strong><span>TICKETS</span></button>
-        <button class="stat" onclick="showRightInfo('users')" title="View online user information"><strong>08</strong><span>ONLINE</span></button>
+        <button class="stat" onclick="showRightInfo('users')" title="View registered computer status"><strong id="onlineUserCount">00</strong><span>ONLINE</span></button>
         <button class="stat" onclick="showRightInfo('messages')" title="View message information"><strong id="messageCount">00</strong><span>MSGS</span></button>
       </div>
       <div class="tabs">
@@ -526,7 +526,7 @@
       <section class="settings-section">
         <div class="settings-section-title">PROFILE & DISPLAY</div>
         <div class="settings-section-body">
-          <label>DISPLAY NAME</label><input id="profileName" value="ADMIN-HR" onchange="saveProfile()">
+          <label>THIS COMPUTER DISPLAY NAME</label><input id="profileName" value="" onchange="saveProfile()"><div class="settings-note">Saved only on this computer. Other computers keep their own names.</div><label>COMPUTER ID</label><input id="deviceIdView" readonly><div class="settings-note">Automatically generated once for this browser.</div>
           <div class="settings-row"><div>COMPACT MESSAGES<div class="settings-note">Show more messages on screen</div></div><button id="compactToggle" class="toggle" onclick="toggleSetting('compact')"></button></div>
           <div class="settings-row"><div>CRT SCAN LINES<div class="settings-note">Terminal screen visual effect</div></div><button id="scanToggle" class="toggle on" onclick="toggleSetting('scan')"></button></div>
           <div class="settings-row"><div>SOUND NOTIFICATIONS<div class="settings-note">Stored as a preference for server version</div></div><button id="soundToggle" class="toggle on" onclick="toggleSetting('sound')"></button></div>
@@ -706,7 +706,12 @@ let files = JSON.parse(localStorage.getItem('autofab_files') || '[]');
 let activeChannel = 'hr';
 let activeTab = 'tasks';
 let selectedAttachments = [];
-let preferences = JSON.parse(localStorage.getItem('autofab_preferences') || 'null') || {name:'ADMIN-HR', compact:false, scan:true, sound:true};
+const DEVICE_ID_KEY='autofab_device_id', DEVICE_NAME_KEY='autofab_device_name';
+function createDeviceId(){return (window.crypto&&crypto.randomUUID)?crypto.randomUUID():'PC-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10);}
+const DEVICE_ID=localStorage.getItem(DEVICE_ID_KEY)||createDeviceId(); localStorage.setItem(DEVICE_ID_KEY,DEVICE_ID);
+const DEFAULT_DEVICE_NAME='COMPUTER-'+DEVICE_ID.replace(/[^a-z0-9]/gi,'').slice(-6).toUpperCase();
+let preferences=JSON.parse(localStorage.getItem('autofab_preferences')||'null')||{name:DEFAULT_DEVICE_NAME,compact:false,scan:true,sound:true};
+preferences.name=localStorage.getItem(DEVICE_NAME_KEY)||preferences.name||DEFAULT_DEVICE_NAME; localStorage.setItem(DEVICE_NAME_KEY,preferences.name);
 let fileHistory = JSON.parse(localStorage.getItem('autofab_file_history') || '[]');
 let messageHistory = JSON.parse(localStorage.getItem('autofab_message_history') || '[]');
 let customFeature = JSON.parse(localStorage.getItem('autofab_custom_feature') || 'null') || {name:'',html:'',css:'',js:''};
@@ -893,6 +898,7 @@ function save(){
   localStorage.setItem('autofab_files',JSON.stringify(files));
   localStorage.setItem('autofab_channels',JSON.stringify(channels));
   localStorage.setItem('autofab_preferences',JSON.stringify(preferences));
+  localStorage.setItem(DEVICE_NAME_KEY,preferences.name);
   localStorage.setItem('autofab_file_history',JSON.stringify(fileHistory));
   localStorage.setItem('autofab_message_history',JSON.stringify(messageHistory));
   localStorage.setItem('autofab_custom_feature',JSON.stringify(customFeature));
@@ -1036,7 +1042,7 @@ function showRightInfo(type){
   const info={
     tasks:{title:'TASK INFORMATION',summary:`${liveTasks.length} active task(s).`,items:liveTasks.map(x=>`<div class="right-info-item"><b>${esc(x.id)} | ${esc(x.priority)}</b>${esc(x.title)}<div class="settings-note">Assigned: ${esc(x.assignee)} | Due: ${esc(x.due)}</div><div class="file-actions"><button class="file-link danger-btn" onclick="deleteTask('${x.id}');showRightInfo('tasks')">DELETE</button></div></div>`).join('')||'<div class="empty">NO ACTIVE TASKS</div>'},
     tickets:{title:'TICKET INFORMATION',summary:`${liveTickets.length} active ticket(s).`,items:liveTickets.map(x=>`<div class="right-info-item"><b>${esc(x.id)} | ${esc(x.status)}</b>${esc(x.title)}<div class="settings-note">Department: ${esc(x.dept)}</div><div class="file-actions"><button class="file-link danger-btn" onclick="deleteTicket('${x.id}');showRightInfo('tickets')">DELETE</button></div></div>`).join('')||'<div class="empty">NO ACTIVE TICKETS</div>'},
-    users:{title:'ONLINE USER INFORMATION',summary:'Current online-user indicator for the team terminal.',items:'<div class="right-info-item"><b>08 USERS ONLINE</b>The detailed presence list will appear here when the server provides per-user presence data.</div>'},
+    users:{title:'REGISTERED COMPUTERS',summary:'Live online/offline status for every registered computer.',items:'<div id="presenceList"><div class="empty">LOADING...</div></div>'},
     messages:{title:'MESSAGE INFORMATION',summary:`${activeMessages.length} active message(s) across ${channels.length} channel(s).`,items:channels.map(c=>`<div class="right-info-item"><b># ${esc(c.name)}</b>${(messages[c.id]||[]).filter(m=>!m.deleted).length} active message(s)</div>`).join('')}
   }[type];
   if(!info)return;
@@ -1044,6 +1050,7 @@ function showRightInfo(type){
   document.getElementById('modalBody').innerHTML=`<div class="right-info"><div class="card-meta">${esc(info.summary)}</div><div class="right-info-grid">${info.items}</div><div class="modal-actions"><button class="cmd-btn" onclick="closeModal()">CLOSE</button></div></div>`;
   document.getElementById('modalWrap').classList.add('show');
   document.getElementById('modalWrap').dataset.type='right-info';
+  if(type==='users')refreshPresence();
 }
 function deleteTask(id){const x=tasks.find(v=>v.id===id);if(!x||!confirm(`Move ${x.id} to Recycle Bin?`))return;x.deleted=true;x.deletedAt=historyTime();x.deletedBy=preferences.name;save();renderTab();updateRecycleBinCount();}
 function deleteTicket(id){const x=tickets.find(v=>v.id===id);if(!x||!confirm(`Move ${x.id} to Recycle Bin?`))return;x.deleted=true;x.deletedAt=historyTime();x.deletedBy=preferences.name;save();renderTab();updateRecycleBinCount();}
@@ -1176,7 +1183,7 @@ function syncTabButtons(){ document.querySelectorAll('.tab-btn').forEach((b,i)=>
 function clearChannel(){ if(confirm('Clear messages in this activity channel?')){messages[activeChannel]=[{type:'system',text:'[SYSTEM] Channel view cleared by ADMIN-HR.'}];save();renderMessages();} }
 
 function openSettings(){
-  document.getElementById('profileName').value=preferences.name; document.getElementById('apiUrlInput').value=apiUrl; document.getElementById('settingsShade').classList.add('show'); renderChannelAdmin(); applyPreferences(); updateRecycleBinCount();
+  document.getElementById('profileName').value=preferences.name; document.getElementById('deviceIdView').value=DEVICE_ID; document.getElementById('apiUrlInput').value=apiUrl; document.getElementById('settingsShade').classList.add('show'); renderChannelAdmin(); applyPreferences(); updateRecycleBinCount();
 }
 function closeSettings(){ document.getElementById('settingsShade').classList.remove('show'); }
 function settingsBackdrop(e){ if(e.target===document.getElementById('settingsShade'))closeSettings(); }
@@ -1204,7 +1211,7 @@ function renameChannel(id){
 function renderChannelAdmin(){
   document.getElementById('channelAdminList').innerHTML=channels.map(c=>`<div class="channel-admin"><span>&gt; # ${esc(c.name)}</span><button class="icon-btn" onclick="renameChannel('${c.id}')">EDIT</button><button class="icon-btn danger-btn" onclick="deleteChannel('${c.id}')">DELETE</button></div>`).join('');
 }
-function saveProfile(){ preferences.name=document.getElementById('profileName').value.trim().toUpperCase()||'ADMIN-HR'; save(); applyPreferences(); }
+function saveProfile(){preferences.name=document.getElementById('profileName').value.trim().toUpperCase()||DEFAULT_DEVICE_NAME;localStorage.setItem(DEVICE_NAME_KEY,preferences.name);save();applyPreferences();sendPresence();refreshPresence();}
 function toggleSetting(key){ preferences[key]=!preferences[key]; save(); applyPreferences(); }
 
 function applyPreferences(){
@@ -1224,7 +1231,7 @@ function exportData(){
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='autofab_terminal_backup.json'; a.click(); URL.revokeObjectURL(a.href);
 }
 function importBackup(input){
-  const file=input.files[0]; if(!file)return; const reader=new FileReader(); reader.onload=()=>{try{const d=JSON.parse(reader.result); if(!Array.isArray(d.channels)||!d.messages)throw Error(); channels=d.channels;messages=d.messages;tasks=d.tasks||[];tickets=d.tickets||[];files=d.files||[];preferences=d.preferences||preferences;fileHistory=d.fileHistory||[];messageHistory=d.messageHistory||[];customFeature=d.customFeature||customFeature;calendarEvents=d.calendarEvents||[];activeChannel=channels[0].id;save();location.reload();}catch(e){alert('Invalid Autofab Terminal backup file.')}};reader.readAsText(file);input.value='';
+  const file=input.files[0]; if(!file)return; const reader=new FileReader(); reader.onload=()=>{try{const d=JSON.parse(reader.result); if(!Array.isArray(d.channels)||!d.messages)throw Error(); channels=d.channels;messages=d.messages;tasks=d.tasks||[];tickets=d.tickets||[];files=d.files||[];fileHistory=d.fileHistory||[];messageHistory=d.messageHistory||[];customFeature=d.customFeature||customFeature;calendarEvents=d.calendarEvents||[];activeChannel=channels[0].id;save();location.reload();}catch(e){alert('Invalid Autofab Terminal backup file.')}};reader.readAsText(file);input.value='';
 }
 function resetApp(){ if(!confirm('Reset all channels, messages, tasks, tickets and settings? This cannot be undone.'))return; ['autofab_messages','autofab_tasks','autofab_tickets','autofab_files','autofab_channels','autofab_preferences','autofab_file_history','autofab_message_history','autofab_custom_feature','autofab_calendar_events','autofab_api_url', 'autofab_look'].forEach(k=>localStorage.removeItem(k)); location.reload(); }
 
@@ -1317,7 +1324,7 @@ function addEventToOutlook(id){
 }
 
 function api(path=''){ return (apiUrl||'').replace(/\/$/,'')+path; }
-function appState(){ return {channels,messages,tasks,tickets,files,preferences,fileHistory,messageHistory,customFeature,calendarEvents}; }
+function appState(){ return {channels,messages,tasks,tickets,files,fileHistory,messageHistory,customFeature,calendarEvents}; }
 function setCloud(text,online){ const el=document.getElementById('cloudState');if(!el)return;el.textContent=text;el.classList.toggle('online',!!online);el.classList.toggle('offline',online===false); }
 async function testServer(){ try{const r=await fetch(api('/api/health'));if(!r.ok)throw Error();const d=await r.json();setCloud('DB: '+String(d.database||'ONLINE').toUpperCase(),true);alert('Backend and MongoDB connection are working.');}catch(e){setCloud('DB: OFFLINE',false);alert('Cannot connect to backend. Start server.js and check the API URL.');} }
 async function pushState(){
@@ -1325,9 +1332,18 @@ async function pushState(){
 }
 async function loadServerState(silent=false){
   try{const r=await fetch(api('/api/state'));if(!r.ok)throw Error();const d=await r.json();if(!d||!d.state){setCloud('DB: EMPTY',true);return;}
-    isApplyingServerState=true;const x=d.state;channels=x.channels||channels;messages=x.messages||messages;tasks=x.tasks||tasks;tickets=x.tickets||tickets;files=x.files||files;preferences=x.preferences||preferences;fileHistory=x.fileHistory||fileHistory;messageHistory=x.messageHistory||messageHistory;customFeature=x.customFeature||customFeature;calendarEvents=x.calendarEvents||calendarEvents;activeChannel=channels[0]?.id||activeChannel;save();isApplyingServerState=false;applyPreferences();renderChannels();renderMessages();renderTab();mountCustomFeature();setCloud('DB: LOADED',true);if(!silent)alert('MongoDB data loaded.');
+    isApplyingServerState=true;const x=d.state;channels=x.channels||channels;messages=x.messages||messages;tasks=x.tasks||tasks;tickets=x.tickets||tickets;files=x.files||files;fileHistory=x.fileHistory||fileHistory;messageHistory=x.messageHistory||messageHistory;customFeature=x.customFeature||customFeature;calendarEvents=x.calendarEvents||calendarEvents;activeChannel=channels[0]?.id||activeChannel;save();isApplyingServerState=false;applyPreferences();renderChannels();renderMessages();renderTab();mountCustomFeature();setCloud('DB: LOADED',true);if(!silent)alert('MongoDB data loaded.');
   }catch(e){isApplyingServerState=false;setCloud('DB: LOCAL MODE',false);if(!silent)alert('Server data could not be loaded.');}
 }
+
+// UNIQUE COMPUTER REGISTRATION AND PRESENCE
+let presenceBusy=false;
+async function sendPresence(online=true){try{const r=await fetch(api('/api/presence'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({deviceId:DEVICE_ID,name:preferences.name,online})});return r.ok;}catch(e){return false;}}
+function presenceCard(x){const own=x.deviceId===DEVICE_ID,state=x.online?'ONLINE':'OFFLINE',dot=x.online?'🟢':'⚫',seen=x.lastSeen?new Date(x.lastSeen).toLocaleString('en-IN',{hour12:false}):'N/A';return `<div class="right-info-item"><b>${dot} ${esc(x.name||'UNNAMED')} ${own?'(THIS COMPUTER)':''}</b><div class="card-meta">STATUS: ${state}<br>COMPUTER ID: ${esc(x.deviceId)}<br>LAST SEEN: ${esc(seen)}</div></div>`;}
+async function refreshPresence(){if(presenceBusy)return;presenceBusy=true;try{const r=await fetch(api('/api/presence'));if(!r.ok)throw Error();const list=await r.json(),online=list.filter(x=>x.online).length;const c=document.getElementById('onlineUserCount');if(c)c.textContent=String(online).padStart(2,'0');const b=document.getElementById('presenceList');if(b)b.innerHTML=list.length?list.map(presenceCard).join(''):'<div class="empty">NO REGISTERED COMPUTERS</div>';}catch(e){const b=document.getElementById('presenceList');if(b)b.innerHTML='<div class="empty">PRESENCE SERVER OFFLINE</div>';}finally{presenceBusy=false;}}
+async function presenceHeartbeat(){await sendPresence(true);await refreshPresence();}
+setInterval(presenceHeartbeat,5000);
+window.addEventListener('beforeunload',()=>{const data=JSON.stringify({deviceId:DEVICE_ID,name:preferences.name,online:false});if(navigator.sendBeacon)navigator.sendBeacon(api('/api/presence/offline'),new Blob([data],{type:'application/json'}));});
 
 // REAL-TIME AUTO-POLLING LOGIC
 async function pollServer() {
@@ -1362,7 +1378,7 @@ function saveApiSettings(){apiUrl=document.getElementById('apiUrlInput').value.t
 document.getElementById('search').addEventListener('input',e=>renderMessages(e.target.value));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('themeStudio').classList.contains('show'))closeThemeStudio();});
 setInterval(()=>{const el=document.getElementById('clock'); if(el) el.textContent=new Date().toLocaleString('en-IN',{hour12:false});},1000);
-applyPreferences(); renderChannels(); renderMessages(); renderTab(); mountCustomFeature(); loadServerState(true);
+applyPreferences(); renderChannels(); renderMessages(); renderTab(); mountCustomFeature(); loadServerState(true); presenceHeartbeat();
 </script>
 </body>
 </html>
